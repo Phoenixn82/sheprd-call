@@ -1,0 +1,1740 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<title>Sheprd</title>
+<style>
+  /* Sheprd: the call screen is an original top-down pixel RPG overworld (his words, 2026-11-06: "emulate like the
+     original ... game aesthetic for the pixel sizes ... when you click on somebody and they're talking like they have a
+     way more high-res face"). The world (world/*.js on Phaser 4.2.1, served as /sheprd/<name>) draws the pasture, the
+     Shepherd, the herd and the dialogue box with its 80px portraits; this page owns the logic and mounts it. Panels
+     stay DOM for accessibility, styled as pixel windows in the world's four shades. No build step, no CDN.
+     Font: VT323, Copyright 2011 The VT323 Project Authors (peter.hull@oikoi.com), SIL Open Font License 1.1
+     (https://openfontlicense.org; the licence text travels in the file's name table), subset to Latin. Chosen for
+     reading: Pixelify Sans's "e" and Silkscreen's capitals were hard to read on the phone. */
+  @font-face { font-family: "VT"; font-display: block; size-adjust: 125%; src: url(data:font/woff2;base64,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) format("woff2"); }
+  :root { color-scheme: dark;
+    --paper: #e4ecc8; --grass: #9bbb6c; --mid: #4f7a5a; --ink: #1e2c24; --focus: #e4ecc8; --thread: 38%; }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { margin: 0; height: 100%; background: var(--ink); color: var(--paper); overflow: hidden;
+    font: 400 16px/1.35 "VT", ui-monospace, monospace; }
+  .sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+  .label { font: 14px/1 "VT", ui-monospace, monospace; text-transform: uppercase; }
+  /* Pixel window: a chunky two-step border (dark outer step, mid inner line) on paper. */
+  .win { background: var(--paper); color: var(--ink); border: 3px solid var(--ink); box-shadow: inset 0 0 0 2px var(--paper), inset 0 0 0 4px var(--mid), 0 0 0 2px var(--paper); }
+  .pix { box-shadow: 0 -3px 0 0 var(--pix, var(--ink)), 0 3px 0 0 var(--pix, var(--ink)), -3px 0 0 0 var(--pix, var(--ink)), 3px 0 0 0 var(--pix, var(--ink)); }
+
+  /* Safe area (2026-11-07: "the stuff at the top of the app if hiding behind the phones widgits and battery and time"):
+     the phone app draws edge to edge, so the WebView reports the status bar, gesture bar and cutouts as env(safe-area-inset-*);
+     everything sits inside them and the bands behind the bars stay ink. */
+  :root { --sat: env(safe-area-inset-top, 0px); --sar: env(safe-area-inset-right, 0px); --sab: env(safe-area-inset-bottom, 0px); --sal: env(safe-area-inset-left, 0px); }
+  html.kbd main { padding-bottom: 0; }  /* the keyboard covers the gesture bar */
+  main { position: relative; box-sizing: border-box; height: 100vh; height: 100dvh; display: flex; flex-direction: column;
+    padding: var(--sat) var(--sar) var(--sab) var(--sal); }
+  #screen { position: relative; flex: 1; min-height: 0; overflow: hidden; background: var(--ink); }
+  /* The world takes the screen above the thread; with nothing said yet (no .talk) the thread is away and it has it all. */
+  #world { position: absolute; inset: 0; bottom: calc(var(--thread) + 12px); display: flex; align-items: center; justify-content: center; touch-action: none; }
+  #screen { --thread: var(--threadh, 38%); }  /* --threadh: the size he dragged the thread to (the grip below) */
+  #screen:not(.talk) { --thread: 0px; }
+  #screen:not(.talk) #thread { display: none; }
+  #world canvas { image-rendering: pixelated; image-rendering: crisp-edges; display: block; }
+  /* The keyboard and screen-reader mirror of the herd and of the things in the yard (2026-11-06: "there shouldn't be
+     really any buttons": the Shepherd calls and hangs up, the picture box adds a photo, the "!" over him is a waiting
+     sign-in): visually hidden buttons that show as a chip when focused. */
+  #herdbuttons button, #herdmore button, #props button { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+  #herdbuttons button:focus-visible, #herdmore button:focus-visible, #props button:focus-visible { position: absolute; left: 8px; top: 44px; width: auto; height: auto; margin: 0; padding: 8px 12px; clip: auto; overflow: visible;
+    background: var(--paper); color: var(--ink); z-index: 4; }
+
+  /* The loading screen (2026-11-07: "add a loading screen with sheprd ASCII art ... do an animation of some kind to it
+     like the omarchy sleep idle animations"): a night pasture that decrypts into place, then idles (stars twinkle, the
+     sheep blink, the grass sways). Drawn by the inline script at the top of <body>, so it is up at first paint and a
+     live UI update never adds it to a page already running. */
+  #boot { position: fixed; inset: 0; z-index: 50; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+    padding: calc(16px + var(--sat)) calc(16px + var(--sar)) calc(16px + var(--sab)) calc(16px + var(--sal)); background: var(--ink); color: var(--paper); transition: opacity .35s; }
+  #boot.gone { opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .35s, visibility 0s .35s; }
+  #bootart { margin: 0; font: 700 min(15px, 3.4vw)/1.15 ui-monospace, "DejaVu Sans Mono", "Roboto Mono", monospace; white-space: pre; font-variant-ligatures: none; }  /* the pixel font has no usable ~ */
+  #bootart .sky, #bootart .ground { color: var(--grass); }
+  #bootsay { margin: 0; max-width: 34ch; text-align: center; font-size: 15px; line-height: 1.35; }
+
+  /* HUD: the status line, and at the top right the mic: its level meter with the mute key beside it (2026-11-07: "The
+     mic should be up near the audio indicator"). With the chat closed the Shepherd's portrait leads it, top left. */
+  #hud { position: absolute; top: 6px; left: 6px; right: 6px; display: flex; align-items: flex-start; justify-content: space-between; gap: 6px; pointer-events: none; }
+  #hud > * { pointer-events: auto; }
+  #status { margin: 0; max-width: 74%; padding: 3px 7px; background: var(--ink); color: var(--paper); border: 2px solid var(--paper); font-size: 13px; line-height: 1.3; }
+  #corner { flex: none; width: 56px; height: 56px; border: 2px solid var(--paper); image-rendering: pixelated; background: var(--paper); }
+  #screen:not(.chatoff) #corner, #corner:not([src]) { display: none; }
+  #hud > #status { margin-right: auto; }
+  /* Thinking is one thing (2026-11-07: "It seems stupid to have that many thinking things"): the Shepherd's portrait
+     ponders, in the newest box or in the corner; the words "Thinking." go only to screen readers (#thinklive). */
+  .face[data-face$="-thinking"], #corner[data-face$="-thinking"] { animation: ponder 1.4s steps(2, jump-none) infinite; transform-origin: 50% 100%; }
+  @keyframes ponder { 50% { transform: translateY(-3px) rotate(-4deg); } }
+  #mic { display: flex; align-items: flex-start; gap: 6px; }
+  #miccheck { font-size: 11px; padding: 3px 6px; background: var(--ink); color: var(--paper); border: 2px solid var(--paper); }
+  #miccheck .row { display: flex; align-items: center; gap: 6px; }
+  #heard { margin: 2px 0 0; min-height: 1.2em; }
+  #mic-level { display: flex; align-items: flex-end; gap: 2px; height: 16px; }
+  #mic-level i { width: 5px; border: 1px solid var(--grass); background: transparent; }
+  #mic-level i.on { border-color: var(--paper); background: var(--paper); }
+  #sync { position: absolute; top: 62px; right: 6px; margin: 0; padding: 3px 7px; background: var(--ink); color: var(--paper); border: 2px solid var(--paper); font-size: 12px; }
+  #screen.hearing #world { box-shadow: inset 0 0 0 4px var(--paper); }
+
+  /* The thread (his words, 2026-11-06: "it doesn't feel like a text thread I can like look through actively"): a
+     scrollable column of handheld-RPG text boxes under the world, newest at the bottom, each with its speaker's plate;
+     the newest desk box wears the 80 px portrait and a blinking advance mark while its words land. It stays up
+     through games and across calls. Own pixel style: the world's four shades, the page's font, no copied art. */
+  #thread { position: absolute; left: 8px; right: 8px; bottom: 8px; height: var(--thread); overflow-y: auto; overscroll-behavior: contain;
+    padding: 12px 2px 2px; scrollbar-width: thin; scrollbar-color: var(--paper) var(--ink); }
+  #lines { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+  .line { position: relative; margin: 0; padding: 10px 10px 8px; font-size: 17px; line-height: 1.3; overflow-wrap: anywhere; }
+  .line.you { margin-left: 28px; background: var(--grass); box-shadow: inset 0 0 0 2px var(--grass), inset 0 0 0 4px var(--mid), 0 0 0 2px var(--grass); }
+  .line.desk, .line.sheep { margin-right: 20px; }
+  .line .who { position: absolute; top: -11px; left: 8px; padding: 2px 7px; background: var(--ink); color: var(--paper); font: 13px/1.1 "VT", ui-monospace, monospace; text-transform: uppercase; letter-spacing: .5px; }
+  .line .words { margin: 0; min-height: 1.3em; }
+  .line:not(.live) .words:empty { display: none; }
+  /* The rest of a reply he cut in on (2026-11-07: "paste the rest of what you were saying while I'm cutting you off"):
+     kept in its box, dimmed (4.9:1 on paper, AA) behind a small NOT SPOKEN tag. */
+  .line .unspoken { margin: 4px 0 0; color: #456b50; }
+  .line .unspoken .tag { display: inline-block; margin-right: 6px; padding: 1px 5px; border: 2px solid #456b50; font: 12px/1.1 "VT", ui-monospace, monospace; text-transform: uppercase; letter-spacing: .5px; vertical-align: 1px; }
+  .line .face { float: left; width: 80px; height: 80px; margin: 0 10px 2px 0; border: 2px solid var(--ink); image-rendering: pixelated; background: var(--paper); }
+  .line.live .words::after { content: ""; display: inline-block; width: 9px; height: 9px; margin-left: 6px; background: var(--ink); clip-path: polygon(0 0, 100% 0, 50% 100%);
+    animation: blink 1s steps(2, jump-none) infinite; vertical-align: 1px; }
+  .line[role="button"], #corner { cursor: pointer; }
+  .line:focus-visible, #corner:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+  @keyframes blink { 50% { opacity: 0; } }
+  /* The grip on the thread's top edge (2026-11-07: "I want to be able to dynamically move the chat up and down at the
+     top of it to shrink or make it bigger"): drag it, or focus it and use the arrow keys, Page Up/Down, Home and End. */
+  #grip { position: absolute; left: 50%; bottom: calc(var(--thread) + 8px - 12px); z-index: 2; width: 88px; height: 24px; margin-left: -44px;
+    display: flex; align-items: center; justify-content: center; touch-action: none; cursor: ns-resize; }
+  #grip::before { content: ""; width: 48px; height: 6px; background: var(--paper); box-shadow: 0 0 0 2px var(--ink); }
+  #grip:focus-visible { outline: 3px solid var(--focus); outline-offset: 0; }
+  #screen:not(.talk) #grip { display: none; }
+  /* Dragged closed (or Arrow Down at the smallest): the world has the screen, the grip waits at the bottom to open it. */
+  #screen.chatoff { --thread: 0px; }
+  #screen.chatoff #thread { display: none; }
+  #screen.chatoff #grip { bottom: 0; }
+  #newer { position: sticky; bottom: 4px; float: right; margin: -40px 6px 0 0; min-height: 36px; padding: 4px 10px; font-size: 14px; }
+
+  /* Panels on the world: the waiting game, desk cards, the sign-in frame, a sheep, the +N list. */
+  .pane { position: absolute; left: 8px; right: 8px; top: 44px; bottom: calc(var(--thread) + 16px); overflow: auto; padding: 10px; text-align: left; }
+  #screen.chatoff .pane, #screen.chatoff #warning { top: 72px; }  /* below the corner portrait (6 + 60 + 6) */
+  .pane h2 { margin: 0 0 4px; font: 22px/1.2 "VT", ui-monospace, monospace; }
+  #herd, #herdlist { bottom: auto !important; max-height: calc(100% - var(--thread) - 60px); }  /* short: the panel fits it */
+  .pane h3 { margin: 10px 0 2px; font: 14px/1 "VT", ui-monospace, monospace; text-transform: uppercase; color: var(--ink); }
+  .pane p, .pane ul { margin: 0; }
+  .pane ul { padding-left: 18px; }
+  .pane ul.plain { list-style: none; padding: 0; }
+  .pane ul.plain li { margin: 6px 0; }
+  .pane .meta { font-size: 14px; }
+  #herdlately li { overflow-wrap: anywhere; }
+  /* The waiting games sit above the thread, so the desk's words stay in view while he plays. The picker (one button per
+     game module) is on top; the pad below it is the one button (2026-11-03: jump taps kept hitting hang-up: it holds
+     no buttons, and the call keys sit outside the world, so a tap can never land on one). */
+  #game { display: none; flex-direction: column; align-items: stretch; gap: 8px; overflow: hidden; }
+  #game.on { display: flex; }
+  #gameclose { align-self: flex-end; flex: none; }
+  #picker { display: flex; gap: 6px; overflow-x: auto; flex: none; padding: 2px 2px 6px; scrollbar-width: none; }
+  #picker::-webkit-scrollbar { display: none; }
+  .pick { flex: none; min-height: 36px; min-width: 44px; padding: 4px 10px; background: var(--paper); color: var(--ink); border: 2px solid var(--ink); font-size: 14px; }
+  .pick[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+  .pick:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+  #pad { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 6px; cursor: pointer; touch-action: manipulation; user-select: none; -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent; }
+  #pad:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+  #board { display: block; width: 100%; flex: 1; min-height: 120px; background: var(--paper); border: 2px solid var(--ink); image-rendering: pixelated; }
+  #gamehint { margin: 0; min-height: 1.3em; font-size: 15px; text-align: center; }
+  #uploads { position: absolute; left: 8px; right: 8px; bottom: calc(var(--thread) + 16px); max-height: 45%; overflow: auto; text-align: left; }
+  #uploads:empty { display: none; }
+  .upload { padding: 8px 10px; margin: 6px 0; overflow-wrap: anywhere; font-size: 14px; }
+  .upload p { margin: 3px 0; }
+  .upload progress { width: 100%; accent-color: var(--mid); }
+  /* A login, CAPTCHA or 2FA step from `web handoff`, framed on the screen while a call is live (2026-11-05: "open
+     up the screen ... so I don't have to like jump between apps"). Back to Sheprd keeps it waiting. */
+  #screen.handoff { --thread: 0px; }  /* the sign-in frame needs the room; the thread is back when it closes */
+  #screen.handoff > :not(#handoff):not(#warning):not(#world):not(#bubblelive):not(#hud):not(#herdbuttons):not(#herdmore) { display: none; }
+  #handofftext { margin: 0 0 8px; font-size: 16px; overflow-wrap: anywhere; }
+  #handoffframe { display: block; width: 100%; height: 52vh; border: 2px solid var(--ink); background: #fff; }
+  #cardtext { margin: 0 0 12px; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 19px; line-height: 1.45; max-height: 42vh; overflow-y: auto; user-select: text; }
+  #cardimage { display: block; width: 100%; background: transparent; color: var(--ink); }
+  #cardimage img { display: block; width: 100%; max-height: 45vh; object-fit: contain; }
+  #cardimage span { display: block; padding: 8px; font-size: 14px; }
+  #cardaudio p { margin: 0 0 4px; font-size: 19px; }
+  #cardaudio .actions { margin: 0; align-items: center; }
+  .actions, #links { display: flex; flex-wrap: wrap; gap: 10px; }
+  .actions { margin-top: 12px; }
+  .action { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding: 8px 14px;
+    background: var(--ink); color: var(--paper); border: 0; box-shadow: 0 3px 0 var(--mid); font: inherit; text-decoration: none; }
+  .action:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--mid); }
+  a:focus-visible, .action:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }  /* on paper the ring is ink */
+  #cardnote { margin: 8px 0 0; font-size: 14px; }
+  #warning { position: absolute; left: 8px; right: 8px; top: 44px; margin: 0; padding: 10px; font-size: 15px; }
+  #viewer { box-sizing: border-box; inset: var(--sat) var(--sar) var(--sab) var(--sal); width: calc(100vw - 20px - var(--sal) - var(--sar)); max-width: none;
+    height: calc(100dvh - 20px - var(--sat) - var(--sab)); max-height: none; padding: 12px; }
+  #viewer::backdrop { background: rgba(0,0,0,.85); }
+  #viewer .actions { margin: 0 0 12px; }
+  #imagepan { overflow: auto; height: calc(100% - 64px); touch-action: pan-x pan-y pinch-zoom; }
+  #largeimage { display: block; width: 100%; }
+  #largeimage.zoomed { width: 200%; max-width: none; }
+
+  /* The control strip under the world: the text box with Send at its right, in thumb reach (2026-11-07: "Why'd you
+     put the send button up there and not to the right of the text box?"). Mute sits with the mic meter in the HUD. */
+  #controls { display: flex; gap: 8px; align-items: stretch; padding: 8px 10px; background: var(--ink); border-top: 3px solid var(--paper); }
+  #typebox { flex: 1; display: flex; gap: 8px; min-width: 0; }
+  #typed { flex: 1; min-width: 0; min-height: 48px; padding: 8px 10px; border: 2px solid var(--paper); background: var(--ink); color: var(--paper); font: inherit; }
+  #typed::placeholder { color: var(--grass); opacity: 1; }
+  #typed:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+  button { font-family: inherit; font-weight: inherit; cursor: pointer; border: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  button:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+  .key { min-height: 48px; min-width: 56px; padding: 4px 6px; background: var(--paper); color: var(--ink); box-shadow: 0 4px 0 var(--mid); font-size: 14px; line-height: 1.1; }
+  .key:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 var(--mid); }
+  .key:disabled { cursor: default; background: var(--grass); color: var(--ink); box-shadow: 0 2px 0 var(--mid); }
+  #mute svg { width: 26px; height: 26px; display: block; margin: auto; }
+  #mute .slash { display: none; }
+  #mute.on .slash { display: inline; }
+  #mute.on { background: var(--grass); }
+
+  /* R22 landscape: the world fills the whole phone; the text box and Send overlay the bottom left (keys at least 44 px). */
+  @media (orientation: landscape) and (max-height: 600px) {
+    main { display: block; }
+    #screen { position: absolute; inset: var(--sat) var(--sar) var(--sab) var(--sal); }
+    #controls { position: absolute; left: calc(10px + var(--sal)); bottom: calc(10px + var(--sab)); width: min(62%, 460px); z-index: 3; padding: 0; background: none; border-top: 0; }
+    .key { min-height: 44px; font-size: 13px; }
+    #screen { --thread: var(--threadh, 36%); }
+    #thread { bottom: 70px; }  /* clear of the text box */
+    #grip, #screen.chatoff #grip { bottom: calc(var(--thread) + 70px - 12px); }
+    #world { bottom: calc(var(--thread) + 74px); }
+    .pane, #uploads { bottom: calc(var(--thread) + 78px); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .face, #corner, .line.live .words::after { animation: none !important; } #thread { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<script id="bootfx">
+// The loading screen's art and effect (plain JS, no assets): every character starts as noise and resolves in a sweep
+// from the left, like Omarchy's screensaver (terminaltexteffects' decrypt), then the scene idles. Reduced motion: the
+// art stands still. The page's script drives it through window.sheprdBoot: on(text) / say(text) / off(). A tap or a
+// key skips it. aria-hidden: the page's own status line already says what is happening.
+(function () {
+  const ART = [" .        *           .         .--.", "      +         .         *    (    )", "*         .           +         '--'", "              .            .", "            ,-.", "     _     (   |", "    (\")     `  |", "    /|\\________|", "     |         |      .-~~~-.     .-~~-.", "     |         |     (  . .  )o> ( .  . )o>", "    / \\        |      '-...-'     '-..-'", "   /   \\       |       || ||       || ||", "~~~~~~~^~~~~~~~~~~~^~~~~~~~~~~~^~~~~~~~~~~~"];
+  const SKY = 4, NOISE = "!#$%&*+-/<=>?@[]^_{|}~01:;", calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  document.currentScript.insertAdjacentHTML("afterend", '<div id="boot" aria-hidden="true"><pre id="bootart"></pre><p id="bootsay">Waking Sheprd…</p></div>');
+  const box = document.getElementById("boot"), pre = document.getElementById("bootart"), caption = document.getElementById("bootsay");
+  const rows = ART.map((line, i) => { const span = document.createElement("span"); span.className = i < SKY ? "sky" : i === ART.length - 1 ? "ground" : ""; pre.append(span, "\n"); return span; });
+  const pick = (s) => s[Math.floor(Math.random() * s.length)];
+  let timer = 0, start = 0, settle = [];
+  function draw(lines) { lines.forEach((line, i) => { if (rows[i].textContent !== line) rows[i].textContent = line; }); }
+  function idle(t) {  // stars twinkle (not the moon, past column 30), eyes blink now and then, the grass tufts sway
+    const blink = t % 4200 < 160;
+    draw(ART.map((line, y) => [...line].map((c, x) => {
+      if (y < SKY && x < 30 && ".*+".includes(c)) return ".*+"[(Math.floor(t / 700) + x * 7 + y * 3) % 3];
+      if (blink && c === "." && y > SKY && /\( .*\)o>/.test(line)) return "-";
+      if (y === ART.length - 1 && c === "^") return Math.floor(t / 900 + x) % 2 ? "^" : "~";
+      return c;
+    }).join("")));
+  }
+  function frame() {
+    const t = performance.now() - start;
+    if (t < 2000) draw(ART.map((line, y) => [...line].map((c, x) => (c === " " || t >= settle[y][x] ? c : pick(NOISE))).join("")));
+    else idle(t);
+  }
+  function play() {
+    clearInterval(timer); start = performance.now();
+    settle = ART.map((line) => [...line].map((_, x) => 250 + x * 30 + Math.random() * 500));
+    if (calm) { draw(ART); return; }
+    frame(); timer = setInterval(frame, 70);
+  }
+  function off() { clearInterval(timer); timer = 0; box.classList.add("gone"); }
+  box.addEventListener("pointerdown", off);
+  addEventListener("keydown", () => { if (!box.classList.contains("gone")) off(); });
+  window.sheprdBoot = {
+    on(text) { if (text) caption.textContent = text; if (box.classList.contains("gone")) { box.classList.remove("gone"); play(); } },
+    say(text) { caption.textContent = text; },
+    off,
+  };
+  play();
+})();
+</script>
+<main id="app">
+  <h1 id="mark" class="sr">Sheprd</h1>
+  <section id="screen" aria-label="Sheprd's screen">
+    <div id="world" aria-hidden="true"></div>
+    <div id="herdbuttons" role="group" aria-label="Herd"></div>
+    <div id="herdmore" role="group" aria-label="More sheep"></div>
+    <div id="props" role="group" aria-label="Around the yard">
+      <button id="btn" type="button">Call</button>
+      <button id="attach" type="button">Add a photo or video</button>
+      <button id="gamesopen" type="button">Play a game</button>
+    </div>
+    <div id="hud">
+      <img id="corner" alt="" role="button" tabindex="0" aria-label="Show full reply">
+      <p id="status" role="status" aria-live="polite">Connecting you to your desk. Just talk.</p>
+      <div id="mic">
+        <div id="miccheck">
+          <div class="row"><span id="mic-label">Mic</span>
+            <div id="mic-level" role="meter" aria-labelledby="mic-label" aria-valuemin="0" aria-valuemax="8" aria-valuenow="0"></div></div>
+          <p id="heard" role="status">Mic off</p>
+        </div>
+        <button id="mute" class="key" type="button" aria-label="Mute microphone" aria-pressed="false" disabled>
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="3" width="6" height="11" rx="3" fill="currentColor" stroke="none"/><path d="M6 11a6 6 0 0 0 12 0M12 17v4M9 21h6"/>
+            <path class="slash" d="M4 4l16 16" stroke="currentColor" stroke-width="3"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <p id="sync" role="status" hidden></p>
+    <p id="bubblelive" class="sr" aria-live="polite"></p>
+    <p id="thinklive" class="sr" role="status"></p>
+    <section id="game" class="pane win" aria-label="Optional games">
+      <button id="gameclose" class="pick" type="button">Close game</button>
+      <div id="picker" role="group" aria-label="Pick a game"></div>
+      <div id="pad" role="button" tabindex="0" aria-label="Game board: tap here or press space to play">
+        <canvas id="board" aria-hidden="true"></canvas>
+        <p id="gamehint">Tap to play while you wait.</p>
+      </div>
+    </section>
+    <section id="card" class="pane win" aria-label="From your desk" aria-live="polite" hidden>
+      <p id="cardtext"></p>
+      <button id="cardimage" type="button" aria-label="Enlarge shared image" hidden>
+        <img id="shownimage" alt="Picture from your desk"><span>Tap to enlarge · pinch to zoom</span>
+      </button>
+      <div id="cardaudio" hidden>
+        <p>A clip from your desk.</p>
+        <div class="actions"><button id="play" class="action" type="button" aria-describedby="cliptime">Play</button><span id="cliptime" class="meta" role="status"></span></div>
+        <audio id="clip" preload="metadata"></audio>
+      </div>
+      <div class="actions">
+        <div id="links"></div>
+        <button id="copy" class="action" type="button">Copy</button>
+        <button id="dismiss" class="action" type="button">Dismiss</button>
+      </div>
+      <p id="cardnote" role="status"></p>
+    </section>
+    <section id="handoff" class="pane win" aria-label="Sign-in for your desk" hidden>
+      <p id="handofftext" role="status"></p>
+      <iframe id="handoffframe" title="Your desk's browser: sign in here" sandbox="allow-scripts allow-same-origin allow-forms"
+        referrerpolicy="no-referrer"></iframe>
+      <div class="actions"><button id="handoffback" class="action" type="button">Back to Sheprd</button></div>
+    </section>
+    <p id="warning" class="win" role="alert" hidden></p>
+    <div id="uploads" aria-live="polite" aria-label="Photo and video uploads"></div>
+    <!-- A sheep (a Herdr tab): what it is on, its last lines, the desk's recap, and Talk / Text / Close. -->
+    <section id="herd" class="pane win" aria-labelledby="herdname" hidden>
+      <h2 id="herdname"></h2>
+      <p class="meta" id="herdstatus"></p>
+      <p id="herdsummary" role="status"></p>
+      <div class="actions">
+        <button id="herdtalk" class="action" type="button" hidden>Talk</button>
+        <button id="herdtext" class="action" type="button">Text</button>
+        <button id="herdclose" class="action" type="button">Close</button>
+      </div>
+    </section>
+    <section id="herdlist" class="pane win" aria-labelledby="herdlisttitle" hidden>
+      <h2 id="herdlisttitle">More sheep</h2>
+      <ul id="herdlistitems" class="plain"></ul>
+      <p id="herdlistempty" hidden>Nobody here.</p>
+      <div class="actions"><button id="herdlistclose" class="action" type="button">Close</button></div>
+    </section>
+    <div id="grip" role="separator" tabindex="0" aria-orientation="horizontal" aria-controls="thread" aria-label="Conversation size"
+      aria-valuemin="0" aria-valuemax="75" aria-valuenow="38" aria-valuetext="38% of the screen"></div>
+    <div id="thread" role="log" aria-label="Conversation"><ol id="lines"></ol><button id="newer" class="action" type="button" hidden>Newest</button></div>
+  </section>
+  <div id="controls">
+    <form id="typebox" autocomplete="off">
+      <label id="typedlabel" for="typed" class="sr">Type to Sheprd (Enter sends)</label>
+      <input id="typed" type="text" maxlength="4000" placeholder="Type to Sheprd" enterkeyhint="send">
+      <button id="send" class="key" type="submit">Send</button>
+    </form>
+    <input id="media" type="file" accept="image/*,video/*" multiple hidden>
+  </div>
+  <audio id="voice" autoplay></audio>
+</main>
+<dialog id="viewer" class="win" aria-label="Shared image">
+  <div class="actions">
+    <button id="zoom" class="action" type="button">Zoom in</button>
+    <button id="closeimage" class="action" type="button">Close image</button>
+  </div>
+  <div id="imagepan"><img id="largeimage" alt="Enlarged picture from your desk"></div>
+</dialog>
+<script src="/sheprd/phaser-4.2.1.min.js"></script>
+<script src="/sheprd/px.js"></script>
+<script src="/sheprd/font.js"></script>
+<script src="/sheprd/tiles.js"></script>
+<script src="/sheprd/sprites.js"></script>
+<script src="/sheprd/portraits.js"></script>
+<script src="/sheprd/world.js"></script>
+<script src="/sheprd/games.js"></script>
+<script src="/sheprd/reload.js"></script>
+<script>
+// every voice-host request carries X-Sheprd: the voice host refuses one without it (a page on another site can't add it)
+const api = (path, init = {}) => fetch(path, { ...init, headers: { ...init.headers, "X-Sheprd": "1" } });
+const NAME = "Sheprd";  // the one display name; internal names stay "shepherd"; the dialogue plate says SHEPRD
+const WORDS_PER_SEC = 3.2;  // calibration: how fast the bubble reveals words (Kokoro at 1.15x speaks about this fast)
+const FOLLOW_IDLE_MS = 120000;  // R16: an off-call reply stream closes 2 min after its last line, never while busy
+const HERD_MAX = 8;  // sheep placed in the world; the rest stand behind a "+N" sign
+const PANE = /^w[0-9A-Za-z]+:p[0-9A-Za-z]+$/, STATUSES = ["working", "blocked", "done", "idle", "unknown"];
+// Herdr's status words, said plainly (he asked what "idle" meant): the panel, the lists and the keyboard mirror use these
+const SAID = { working: "Working", blocked: "Needs you", done: "Finished", idle: "Resting", unknown: "Quiet" };
+const btn = document.getElementById("btn"), status = document.getElementById("status"), voice = document.getElementById("voice");
+const thinkLive = document.getElementById("thinklive"), scr = document.getElementById("screen"), mute = document.getElementById("mute");
+let pc = null, mic = null, muted = false, ac = null, meter = 0, micMeter = 0;
+let events = null, healthTimer = 0, healthAt = 0, receiving = null, userSpeaking = false;
+let connectionIssue = "", channelIssue = "", callAttempt = 0;
+const query = new URLSearchParams(location.search);
+const viewOnly = query.has("view"), demo = query.has("demo"), demoCall = demo && query.has("call");  // demo&call: lay out as on a call
+const plain = query.has("plain");  // the server sends a navigation from elsewhere here: the page waits for his tap instead of calling
+const KEEP = "sheprd.page.v1";  // localStorage key of what survives leaving the app (keep / the restore block below)
+let kept = false;  // nothing is saved until the saved page is back, or the restore would overwrite it
+const warning = document.getElementById("warning"), micLevel = document.getElementById("mic-level");
+const heard = document.getElementById("heard");
+// the loading screen (the inline script at the top of <body>; absent in the node tests)
+const boot = typeof sheprdBoot === "object" && sheprdBoot ? sheprdBoot : { on() {}, say() {}, off() {} };
+let dropped = false;  // the last call dropped: the next call() shows the loading screen while it reconnects
+const say = (t) => { status.textContent = t; boot.say(t); };
+const reducedMotion = typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
+document.title = NAME;
+document.getElementById("mark").textContent = NAME;
+scr.setAttribute("aria-label", NAME + "'s screen");
+document.getElementById("handoffback").textContent = "Back to " + NAME;
+const typed = document.getElementById("typed"), typedLabel = document.getElementById("typedlabel");
+function typeTo(name) { typedLabel.textContent = "Type to " + name + " (Enter sends)"; typed.setAttribute("placeholder", "Type to " + name); }
+typeTo(NAME);
+const BAR_DB = [-60, -54, -48, -42, -36, -30, -24, -18];  // block i lights when the mic is louder than this, in dBFS
+const blocks = BAR_DB.map((_, i) => {
+  const b = document.createElement("i"); b.style.height = 6 + i * 10 / 7 + "px"; micLevel.append(b); return b;
+});
+let lit = 0;
+function micBars(n) {
+  if (n === lit) return;
+  lit = n; blocks.forEach((b, i) => b.classList.toggle("on", i < n)); micLevel.setAttribute("aria-valuenow", String(n));
+}
+
+// Pure helpers the tests call.
+function bubbleReveal(text, secs, wps = WORDS_PER_SEC) {
+  const words = String(text || "").split(/\s+/).filter(Boolean);
+  if (!words.length) return [];
+  const step = secs ? secs / words.length : 1 / wps;
+  return words.map((_, i) => ({ at: Math.round(i * step * 1e6) / 1e6, shown: words.slice(0, i + 1).join(" ") }));
+}
+function spriteState({ busy, speaking, listening, aside } = {}) {
+  return aside ? "aside" : speaking ? "talking" : listening ? "listening" : busy ? "thinking" : "idle";
+}
+// Where the herd stands: working sheep graze in the field, blocked ones wait at the gate, done ones walk home to the
+// barn doors, idle and unknown ones rest beside the barn; past `max` placed sheep the rest are counted on a "+N" sign.
+// Every sheep is drawn (2026-11-07: "there's only 1 sheep even though I set up a bunch of stuff": a tab waiting at its
+// prompt is idle, and idle ones used to be only a number on the barn's sign). Placement order: blocked (they need him),
+// done, working, then resting, each in herd order.
+function placeHerd(herd, max = HERD_MAX) {
+  const zone = { blocked: "gate", done: "home", working: "field", idle: "rest", unknown: "rest" };
+  const out = { field: [], gate: [], home: [], rest: [], more: [] };
+  const of = (s) => herd.filter((x) => x.status === s);
+  let placed = 0;
+  for (const s of [...of("blocked"), ...of("done"), ...of("working"), ...of("idle"), ...of("unknown")]) {
+    (placed < max ? out[zone[s.status]] : out.more).push(s);
+    placed++;
+  }
+  return out;
+}
+function herdLayout(herd, max = HERD_MAX) {
+  const p = placeHerd(herd, max);
+  return { field: p.field, gate: p.gate, home: p.home, rest: p.rest, more: p.more.length };
+}
+
+// The world (Phaser, world/*.js) draws everything; this page only calls its API, and runs without it (the node tests,
+// or a browser that could not start the engine: then the DOM bubble carries the words).
+const worldEl = document.getElementById("world");
+function mountWorld(renderer) {
+  return renderer && typeof renderer.mount === "function"
+    ? renderer.mount(worldEl, { reducedMotion, onSheep: (id) => showSheep(id), onMore: () => showList(),
+                               onGround: () => {}, onShepherd: () => shepherdTap(), onProp: (id) => { const p = PROPS.find((x) => x.id === id); if (p) p.act(); } })
+    : null;
+}
+let world = mountWorld(typeof SheprdWorld !== "undefined" ? SheprdWorld : null);
+
+// In-world controls (2026-11-06: "there shouldn't be really any buttons ... find unique ways to incorporate the buttons
+// as features"): each is one entry here, a thing in the yard the world draws (sprites.js) with what a tap does, mirrored
+// by one visually hidden button in #props for the keyboard and screen readers (the same handler). The Shepherd himself
+// is the call: tap him to call, twice to hang up; a "!" over him is a sign-in waiting (shepherdTap below).
+const PROPS = [
+  { id: "photo", tile: [16, 17], rows: typeof SHEPRD !== "undefined" && SHEPRD.SPRITES ? SHEPRD.SPRITES.camera.rows() : null,
+    act: () => picker.click() },
+  { id: "games", tile: [11, 17], rows: typeof SHEPRD !== "undefined" && SHEPRD.signGrid ? SHEPRD.signGrid("PLAY").rows() : null,
+    act: () => game.show() },
+];
+if (world && world.setProps) world.setProps(PROPS.filter((p) => p.rows));
+
+// The Shepherd's state in the world: idle wanders by the gate, listening faces you, thinking stands still (the portrait ponders), talking bobs,
+// aside walks to the field edge while a sheep speaks. The 32-bit portrait is the only face (2026-11-07: the 8-bit
+// head corner beside it is gone, the owner: "Yes" to removing it). The portrait's mood: bursts (surprised, happy, worried) for 3 s, thinking while busy, talk1/talk2 on the
+// real voice level, neutral when silent.
+var sprite = (() => {  // var: the node tests reach it as a context global
+  let flags = { busy: false, speaking: false, listening: false, aside: false, muted: false, calling: false };
+  let state = "idle", burst = null, burstTimer = 0, level = 0, mouth = false, mouthAt = -1000;
+  function refresh() {
+    state = spriteState(flags);
+    if (world) world.setSprite(state);
+    bubble.push();
+  }
+  function set(patch) { Object.assign(flags, patch); refresh(); }
+  function play(kind, ms = 3000) {
+    burst = kind; clearTimeout(burstTimer);
+    burstTimer = setTimeout(() => { if (burst === kind) { burst = null; bubble.push(); } }, ms);
+    bubble.push();
+  }
+  function setLevel(l) {
+    const was = level; level = l;
+    if (l > 0) { const now = performance.now(); if (now - mouthAt >= 120) { mouthAt = now; mouth = !mouth; bubble.push(); } }
+    else if (was > 0) bubble.push();
+  }
+  function chew() { mouth = !mouth; }  // off call there is no voice level: each word that lands moves the mouth
+  function mood(who) {
+    if (who !== "shepherd") { const s = herdById.get(who); return s && s.status === "blocked" ? "alert" : s && s.status === "done" ? "happy" : "neutral"; }
+    if (burst) return burst;
+    if (level > 0 || bubble.chewing) return mouth ? "talk1" : "talk2";
+    if (flags.busy) return "thinking";
+    return "neutral";
+  }
+  return { set, level: setLevel, chew, mood, surprise: () => play("surprised"), wince: () => play("worried"), happy: () => play("happy"),
+           get state() { return state; } };
+})();
+
+// The thread (his words, 2026-11-06: "it doesn't feel like a text thread I can like look through actively"): every
+// line the desk or a sheep says, every line he types, and every turn the call heard from him lands in a scrollable
+// column of RPG text boxes under the world, newest at the bottom, and stays there through games and across calls. The
+// newest desk box wears the speaker's portrait (SH.PORTRAITS, drawn to a data URL once per expression). The column
+// follows new words unless he has scrolled up to read back; then a Newest key waits at the bottom (2026-11-07: "move the
+// chat as you type out stuff to the newest message and only don't do that if I'm scrolling up the chat to read something
+// prior"). Following is his intent, not a distance: only scrolling up turns it off (a box growing by a portrait or a
+// wrapped line never does), and reaching the bottom again turns it back on.
+const thread = (() => {
+  const box = document.getElementById("thread"), list = document.getElementById("lines"), newer = document.getElementById("newer");
+  const MAX = 200, faces = new Map(), rows = [];  // rows: {kind, name, text, unspoken?} per box, what keep() saves
+  let latest = null;
+  function faceUrl(name) {
+    if (!faces.has(name)) {
+      let url = "";
+      try { if (typeof SHEPRD !== "undefined" && SHEPRD.PORTRAITS) url = SHEPRD.gridToCanvas(SHEPRD.PORTRAITS.render(name), SHEPRD.PORTRAIT_PALETTE).toDataURL(); } catch (_) {}
+      faces.set(name, url);
+    }
+    return faces.get(name);
+  }
+  let follow = true, lastTop = 0;
+  const gap = () => box.scrollHeight - box.scrollTop - box.clientHeight;
+  const scrolledUp = () => (box.scrollTop || 0) < lastTop - 1 && !(gap() < 8);  // read now: his scroll event may still be on its way
+  const atBottom = () => { if (scrolledUp()) follow = false; return !(box.scrollHeight > box.clientHeight) || follow; };
+  function settle(stick) {
+    if (stick) { box.scrollTop = box.scrollHeight; lastTop = box.scrollTop || 0; follow = true; newer.hidden = true; } else newer.hidden = false;
+  }
+  // While the desk thinks after his turn, a Sheprd box waits at the bottom with the pondering portrait (aria-hidden:
+  // #thinklive says it). It is not a row: nothing saves it, and his next words still join his own box.
+  let busy = false;
+  const wait = document.createElement("li"), waitFace = document.createElement("img"), waitWho = document.createElement("span"), waitWords = document.createElement("p");
+  wait.classList.add("line", "win", "desk", "waiting"); wait.setAttribute("aria-hidden", "true");
+  waitFace.classList.add("face"); waitFace.setAttribute("alt", ""); waitWho.classList.add("who"); waitWho.textContent = NAME.toUpperCase(); waitWords.classList.add("words");
+  wait.append(waitFace, waitWho, waitWords);
+  function waiting(on) {
+    busy = on;
+    const show = on && (!latest || latest.kind === "you");
+    if (show === !!wait.parentNode) return;
+    const stick = atBottom();
+    if (show) {
+      list.append(wait);
+      const url = faceUrl("shepherd-thinking");
+      waitFace.setAttribute("data-face", "shepherd-thinking");
+      if (url) waitFace.setAttribute("src", url);
+      if (latest && latest.face) latest.face.hidden = true;
+    } else wait.remove();
+    settle(stick);
+  }
+  const corner = document.getElementById("corner");
+  function cornerFace(name) {  // the chat closed: the portrait sits top left and talks and thinks there
+    if (corner.getAttribute("data-face") === name && corner.getAttribute("src")) return;
+    corner.setAttribute("data-face", name);
+    const url = faceUrl(name);
+    if (url) corner.setAttribute("src", url);
+  }
+  function add(kind, name, text, shown = text) {  // kind: desk | sheep | you; `shown`: the words on screen so far
+    const stick = atBottom();
+    // His turn that speech recognition cut in two (2026-11-07: "the one paragraph that I said broke up into two
+    // distinct chats boxes"): his words join his own box until someone answers. A box has no size cap; the thread scrolls.
+    if (kind === "you" && latest && latest.kind === "you") {
+      latest.text = latest.text + " " + text; latest.words.textContent = latest.text;
+      settle(stick); keep();
+      return latest;
+    }
+    if (wait.parentNode) wait.remove();
+    const li = document.createElement("li"), who = document.createElement("span"), words = document.createElement("p");
+    li.classList.add("line", "win", kind); who.classList.add("who"); who.textContent = name; words.classList.add("words"); words.textContent = shown;
+    let face = null;
+    if (kind !== "you") {
+      face = document.createElement("img"); face.classList.add("face"); face.setAttribute("alt", ""); face.hidden = true; li.append(face);
+      li.addEventListener("click", () => bubble.revealAll(li));
+      li.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); bubble.revealAll(li); } });
+    }
+    li.append(who, words);
+    if (latest && latest.face) latest.face.hidden = true;  // only the newest box wears the portrait
+    latest = { li, words, face, kind, name, text };
+    rows.push(latest); list.append(li);
+    while (rows.length > MAX) { rows.shift(); list.children[0].remove(); }
+    if (busy) waiting(true);  // he spoke again while the desk thinks: the waiting box stays last
+    if (!scr.classList.contains("talk")) { scr.classList.add("talk"); relayout(); }
+    settle(stick); keep();
+    return latest;
+  }
+  function face(entry, name) {
+    if (!entry || !entry.face || entry !== latest) return;  // an older box finishing its words never gets its portrait back
+    entry.face.setAttribute("data-face", name);  // the expression by name (the node tests read it; the picture needs a canvas)
+    const url = faceUrl(name);
+    if (!url) return;
+    if (entry.face.getAttribute("src") !== url) entry.face.setAttribute("src", url);
+    entry.face.hidden = false;
+  }
+  function grew() { settle(atBottom()); }  // more words landed in the newest box
+  function unspoken(entry, text) {  // words of this reply the voice never said (he cut in): kept, marked not spoken
+    if (!entry.unspokenWords) {
+      const p = document.createElement("p"), tag = document.createElement("span");
+      p.classList.add("unspoken"); tag.classList.add("tag"); tag.textContent = "not spoken";
+      entry.unspokenWords = document.createElement("span");
+      p.append(tag, entry.unspokenWords); entry.li.append(p);
+    }
+    entry.unspoken = entry.unspoken ? entry.unspoken + " " + text : text;
+    entry.unspokenWords.textContent = entry.unspoken;
+    grew(); keep();
+  }
+  box.addEventListener("scroll", () => {
+    const top = box.scrollTop || 0;
+    if (scrolledUp()) follow = false;  // he scrolled up to read back
+    if (gap() < 8) follow = true;  // at the bottom (again, or clamped there by the thread growing taller)
+    lastTop = top;
+    if (follow) newer.hidden = true;
+  });
+  // The thread resized (his grip, the keyboard, a rotation) or a box grew outside grew(): keep the newest in view.
+  if (typeof ResizeObserver === "function") { const ro = new ResizeObserver(() => { if (follow) settle(true); }); ro.observe(box); ro.observe(list); }
+  newer.addEventListener("click", () => settle(true));
+  const lines = () => rows.map(({ kind, name, text, unspoken }) => (unspoken ? { kind, name, text, unspoken } : { kind, name, text }));
+  return { add, face, grew, lines, waiting, unspoken, corner: cornerFace, refresh() { faces.clear(); bubble.push(); }, get count() { return list.children.length; }, get latest() { return latest; } };
+})();
+
+// A reply is one box in the thread (2026-11-07: "why do you make new talking bubbles like every sentence stop that"):
+// each said sentence appends to the speaker's box while it is the newest box; a new box starts when the speaker
+// changes, he spoke or typed (his box is then the newest), the voice was cut (say-stop), or the last sentence ended
+// over REPLY_GAP ms ago. Words land on the bubbleReveal schedule; on a call it pauses while the voice is silent (R17:
+// off call there is no voice level, so it runs at WORDS_PER_SEC), `said` completes it, `say-stop` freezes it at the
+// words he heard (bot.py's count, the same one the desk's cut-in note gives), and `unspoken` adds the rest of the reply
+// to that box, marked not spoken. Whole sentences mirror into the aria-live region. Off call, sentences wait their
+// turn, one after another.
+var bubble = (() => {  // var: the node tests reach it as a context global
+  const live = document.getElementById("bubblelive");
+  let plan = [], shown = 0, startAt = 0, paused = 0, pausedAt = 0, timer = 0, running = false, paced = false, full = "";
+  let who = "shepherd", name = NAME.toUpperCase(), entry = null, base = "", cut = false, endedAt = -Infinity, voicing = false;
+  const queue = [], REPLY_GAP = 15000;
+  function stopTimers() { clearTimeout(timer); timer = 0; }
+  function push() { const name = (who === "shepherd" ? "shepherd-" : "sheep-") + sprite.mood(who); if (entry) thread.face(entry, name); thread.corner(name); }
+  // after a tap, the reply's sentences the voice has not reached yet (bot.py reveal) follow the words said so far
+  const ahead = () => (entry && entry.ahead && entry.ahead.length ? " " + entry.ahead.join(" ") : "");
+  function paint() { entry.words.textContent = base + (plan[shown - 1] ? plan[shown - 1].shown : "") + ahead(); }
+  function show(n) { if (n === shown) return; shown = n; paint(); if (!paced) sprite.chew(); push(); thread.grew(); }
+  function tick() {
+    timer = 0;
+    if (!running) return;
+    const now = performance.now();
+    const quiet = paced && heardVoice && now - voiceQuietAt > 250;
+    if (quiet && !pausedAt) pausedAt = now;
+    else if (!quiet && pausedAt) { paused += now - pausedAt; pausedAt = 0; }
+    const elapsed = (pausedAt ? pausedAt : now) - startAt - paused;
+    let n = shown; while (n < plan.length && plan[n].at * 1000 <= elapsed) n++;
+    show(n);
+    if (n >= plan.length) { finish(); return; }
+    timer = setTimeout(tick, 40);
+  }
+  function settle() {
+    running = false; endedAt = performance.now(); entry.li.classList.remove("live");
+    for (const attr of ["role", "tabindex", "aria-label"]) entry.li.removeAttribute(attr);
+    push();
+  }
+  function finish() { settle(); live.textContent = full; const next = queue.shift(); if (next) start(next.text, next.options); }
+  function say(sentence, options = {}) {
+    const words = String(sentence || "").trim();
+    if (!words) return;
+    if (running && !options.paced) { queue.push({ text: words, options }); return; }  // off call: one line after another
+    queue.length = 0;  // a voiced sentence replaces whatever was waiting; the queue only ever holds off-call lines
+    start(words, options);
+  }
+  function start(words, options) {
+    stopTimers();
+    if (running) settle();
+    plan = bubbleReveal(words); full = words; paced = !!options.paced; heardVoice = false;
+    // R18: the speaker's identity is the pane id (the seated talker, or the pane a Text went to); names are display only
+    who = options.who || (options.speaker && talker ? talker.id : "shepherd");
+    const s = herdById.get(who);
+    name = who === "shepherd" ? NAME.toUpperCase() : (s && s.name) || (talker && talker.id === who && talker.name) || options.speaker || who;
+    const kind = who === "shepherd" ? "desk" : "sheep";
+    const next = entry && entry.ahead ? entry.ahead.indexOf(words) : -1;  // a revealed sentence the voice reached now
+    const same = !cut && entry && entry === thread.latest && entry.kind === kind && entry.name === name && (performance.now() - endedAt < REPLY_GAP || next >= 0);
+    if (same && next >= 0) entry.ahead.splice(0, next + 1);  // already on screen: shown once, not again
+    cut = false; voicing = paced;
+    if (same) { base = entry.text + " "; entry.text = base + words; thread.grew(); keep(); }
+    else { base = ""; entry = thread.add(kind, name, words, ""); }
+    entry.li.classList.add("live");
+    entry.li.setAttribute("role", "button"); entry.li.setAttribute("tabindex", "0"); entry.li.setAttribute("aria-label", "Show full reply");
+    shown = 0; paused = pausedAt = 0; startAt = performance.now(); running = true;
+    push();
+    if (entry.skipTypewriter || reducedMotion || !plan.length) { show(plan.length); finish(); return; }
+    tick();
+  }
+  function done(said) { if (said) voicing = false; if (!running) return; stopTimers(); show(plan.length); finish(); }
+  function revealAll(li = entry && entry.li) {
+    if (!entry || li !== entry.li || cut || (!running && !scr.classList.contains("speaking"))) return false;
+    entry.skipTypewriter = true;  // per reply: later sentences in this box also appear as soon as they arrive
+    entry.ahead = entry.ahead || [];
+    done();
+    // and the rest of the reply, not yet spoken: the call answers with "reveal" (2026-11-07: "just show the full thing
+    // that you're saying ... but you still can read it normally like that"); the voice reads on as before
+    try { if (pc && events && events.readyState === "open") events.send(JSON.stringify({ type: "reveal" })); } catch (_) {}
+    if (scr.classList.contains("chatoff")) grip.set(38);
+    return true;
+  }
+  function reveal(sentences) {  // the call's answer to a tap: the reply's unspoken sentences, into the tapped box
+    if (!entry || !entry.ahead || cut || entry !== thread.latest || !Array.isArray(sentences)) return;
+    for (const s of sentences) if (typeof s === "string" && s.trim()) entry.ahead.push(s.trim());
+    paint(); thread.grew();
+  }
+  function stop(heard) {
+    cut = true;  // whatever is said next is a new reply
+    const revealed = entry && entry.ahead && entry.ahead.length;
+    if (revealed) entry.ahead = [];  // never spoken: `unspoken` brings them back, marked not spoken
+    if (!running) {
+      // a revealed sentence the voice was in the middle of keeps only the words he heard; `unspoken` has its rest
+      if (voicing && entry && typeof heard === "string") { entry.text = (base + heard.trim()).trimEnd(); entry.words.textContent = entry.text; keep(); }
+      else if (revealed) entry.words.textContent = entry.text;
+      voicing = false;
+      return;
+    }
+    voicing = false;
+    stopTimers(); live.textContent = typeof heard === "string" ? heard.trim() : plan[shown - 1] ? plan[shown - 1].shown : "";
+    entry.text = (base + live.textContent).trimEnd(); entry.words.textContent = entry.text; settle(); keep();
+  }
+  function unspoken(text) {  // the rest of the reply he cut in on, never spoken: into that reply's box
+    const words = String(text || "").trim();
+    if (!words) return;
+    if (running) done();
+    // his cut (or a pause between its sentences) left this reply's box last: the rest joins it; else the reply never
+    // began aloud and gets a box of its own
+    if (!(entry && (cut || (entry === thread.latest && performance.now() - endedAt < REPLY_GAP)))) {
+      who = talker ? talker.id : "shepherd"; name = talker ? talker.name || talker.id : NAME.toUpperCase();
+      entry = thread.add(talker ? "sheep" : "desk", name, "", ""); endedAt = performance.now();
+    }
+    cut = true;  // whatever is said next is a new reply
+    thread.unspoken(entry, words);
+  }
+  return { say, done, stop, unspoken, push, revealAll, reveal, get running() { return running; }, get chewing() { return running && !paced && !reducedMotion; },
+           get queued() { return queue.length; }, get who() { return who; }, get name() { return name; } };
+})();
+let heardVoice = false, voiceQuietAt = 0;
+
+// The grip resizes the thread: a percent of the screen above the controls, 15 to 75, or 0 for closed (2026-11-07: "if
+// I'm not looking at the chat, then like the shepherd moves to the top left corner ... So I don't always have to have
+// the text conversation open"): dragged below half the smallest size, or Arrow Down / Home at the smallest. Saved with
+// the page (keep()).
+var grip = (() => {  // var: the node tests reach it as a context global
+  const el = document.getElementById("grip"), box = document.getElementById("thread"), MIN = 15, MAX = 75;
+  let size = null, drag = false;  // size: null until he sets it (the stylesheet's 38%, 36% in landscape)
+  const now = () => {
+    if (size !== null) return size;
+    const t = box.getBoundingClientRect(), s = scr.getBoundingClientRect();
+    return s.height > 0 && t.height > 0 ? Math.round(t.height / s.height * 100) : 38;
+  };
+  function set(pct, save = true) {
+    if (typeof pct !== "number" || !Number.isFinite(pct)) return;
+    size = pct < MIN / 2 ? 0 : Math.round(Math.min(MAX, Math.max(MIN, pct)));
+    scr.classList.toggle("chatoff", size === 0);
+    if (size && scr.style.setProperty) scr.style.setProperty("--threadh", size + "%");
+    el.setAttribute("aria-valuenow", String(size)); el.setAttribute("aria-valuetext", size ? size + "% of the screen" : "Conversation hidden");
+    relayout();
+    if (save) keep();
+  }
+  function to(y) {  // the grip follows the finger: the thread runs from y down to its bottom edge (CSS bottom, even when closed)
+    const s = scr.getBoundingClientRect(), off = typeof getComputedStyle === "function" ? parseFloat(getComputedStyle(box).bottom) || 8 : 8;
+    if (s.height > 0) set((s.bottom - off - y) / s.height * 100, false);
+  }
+  el.addEventListener("pointerdown", (e) => { e.preventDefault(); drag = true; try { el.setPointerCapture(e.pointerId); } catch (_) {} });
+  el.addEventListener("pointermove", (e) => { if (drag) to(e.clientY); });
+  const end = () => { if (drag) { drag = false; keep(); } };
+  el.addEventListener("pointerup", end); el.addEventListener("pointercancel", end);
+  const KEYS = { ArrowUp: 5, ArrowDown: -5, PageUp: 15, PageDown: -15, Home: -100, End: 100 };
+  el.addEventListener("keydown", (e) => {
+    if (!(e.key in KEYS)) return;
+    e.preventDefault();
+    const cur = now();
+    set(e.key === "End" ? MAX : KEYS[e.key] < 0 && cur <= MIN ? 0 : cur === 0 && KEYS[e.key] > 0 ? Math.max(MIN, KEYS[e.key]) : e.key === "Home" ? MIN : cur + KEYS[e.key]);
+  });
+  return { set, get size() { return size; } };
+})();
+
+const cornerReply = document.getElementById("corner");
+cornerReply.addEventListener("click", () => bubble.revealAll());
+cornerReply.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); bubble.revealAll(); } });
+
+// The keyboard (2026-11-07: "When I go to type on Shepard, it will... Move. The top layer ... away to where I can't
+// see them anymore. I want them to always be at like fix at the top"). interactive-widget=resizes-content asks the
+// browser to shrink the page above the keyboard; where it only shrinks the visual viewport and pans it to the text box
+// instead, the page is pinned to what is visible: its top follows the panned viewport and its height ends at the
+// keyboard, so the HUD stays at the top and the type box rides on the keyboard.
+var fitKeyboard = (() => {  // var: the node tests reach it as a context global
+  const vv = typeof visualViewport === "object" && visualViewport ? visualViewport : null, app = document.getElementById("app");
+  function fit() {
+    if (!vv || vv.scale > 1.01) return;  // pinch zoom: leave the page where he put it
+    const kbd = innerHeight - vv.height > 80;
+    app.style.height = kbd ? Math.round(vv.height) + "px" : "";
+    app.style.transform = kbd && vv.offsetTop ? "translateY(" + Math.round(vv.offsetTop) + "px)" : "";
+    if (document.documentElement) document.documentElement.classList.toggle("kbd", kbd);
+  }
+  if (vv) { vv.addEventListener("resize", fit); vv.addEventListener("scroll", fit); }
+  return fit;
+})();
+
+const card = document.getElementById("card"), cardText = document.getElementById("cardtext");
+const cardImage = document.getElementById("cardimage"), shownImage = document.getElementById("shownimage");
+const links = document.getElementById("links"), cardNote = document.getElementById("cardnote");
+const cardAudio = document.getElementById("cardaudio"), clip = document.getElementById("clip"), playKey = document.getElementById("play"), clipTime = document.getElementById("cliptime");
+// Card kinds from call-show's marker, <kind>:<name> (shown.py KINDS): one entry per kind, its name rule (the route's,
+// so a name that will 404 never becomes a card) and how the card shows it. A new kind is one more entry.
+const CARDS = {
+  image: { name: /^[A-Za-z0-9][A-Za-z0-9_-]{0,127}\.(?:png|jpe?g|webp)$/i,
+           show(name) { cardImage.hidden = false; shownImage.src = "api/shown/" + encodeURIComponent(name); } },
+  audio: { name: /^[A-Za-z0-9][A-Za-z0-9_-]{0,127}\.(?:mp3|ogg|wav)$/i,
+           show(name) { cardAudio.hidden = false; clipTime.textContent = ""; playKey.textContent = "Play"; clip.setAttribute("src", "api/shown/" + encodeURIComponent(name)); } },
+};
+// An audio card plays inside the page (2026-11-06: "Do you not make them open in the app?"). While it plays on a call
+// the mic is held, so the desk never hears the clip as him talking, and the desk's voice is turned down; both come
+// back when it pauses or ends. A new card, Dismiss or hang up stops it.
+let clipHolds = false;
+function clipHold(on) {
+  if (on === clipHolds) return;
+  clipHolds = on;
+  if (mic && !muted) mic.getAudioTracks().forEach((t) => { t.enabled = !on; });
+  voice.volume = on ? 0.2 : 1;
+  if (mic) heard.textContent = on ? "Mic held for the clip" : muted ? "Mic muted" : "Mic live";
+}
+function clipStop() { try { if (!clip.paused) clip.pause(); } catch (_) {} clip.removeAttribute("src"); clipHold(false); }
+const clock = (n) => Math.floor(n / 60) + ":" + String(Math.floor(n % 60)).padStart(2, "0");
+const clipClock = () => { clipTime.textContent = Number.isFinite(clip.duration) && clip.duration > 0 ? clock(clip.currentTime || 0) + " / " + clock(clip.duration) : ""; };
+playKey.addEventListener("click", () => {
+  if (clip.paused) { const p = clip.play(); if (p && p.catch) p.catch(() => { cardNote.textContent = "Could not play the clip. Tap Play again."; }); }
+  else clip.pause();
+});
+clip.addEventListener("play", () => { playKey.textContent = "Pause"; cardNote.textContent = ""; clipHold(true); });
+clip.addEventListener("pause", () => { playKey.textContent = clip.ended ? "Play again" : "Play"; clipHold(false); });
+clip.addEventListener("ended", () => { playKey.textContent = "Play again"; clipHold(false); });
+clip.addEventListener("timeupdate", clipClock); clip.addEventListener("loadedmetadata", clipClock);
+clip.addEventListener("error", () => { if (cardAudio.hidden) return; cardNote.textContent = "Clip unavailable or expired. Ask the desk to share it again."; clipHold(false); sprite.wince(); });
+const viewer = document.getElementById("viewer"), largeImage = document.getElementById("largeimage");
+const zoom = document.getElementById("zoom"), sync = document.getElementById("sync");
+let shownId = null, shownText = "", showVersion = 0;
+
+function closeImage() { if (viewer.open) viewer.close(); }
+function showCard(message) {
+  if (typeof message.text !== "string" || !message.text.trim()) return;
+  const id = message.id || message.text;
+  if (id === shownId) return;  // Polling must not resurrect a dismissed card.
+  shownId = id; shownText = message.text.trim(); showVersion++;
+  closeImage(); clipStop(); game.hide();
+  card.hidden = false; scr.classList.add("showing"); cardNote.textContent = "";
+  cardText.textContent = shownText; cardText.hidden = false; cardImage.hidden = true; cardAudio.hidden = true; links.replaceChildren();
+  shownImage.removeAttribute("src"); document.getElementById("copy").hidden = false;
+  const marker = /^([a-z]+):(.+)$/.exec(shownText);
+  const kind = marker && CARDS[marker[1]] && CARDS[marker[1]].name.test(marker[2]) ? marker[1] : null;
+  if (kind) {
+    cardText.hidden = true; document.getElementById("copy").hidden = true;
+    CARDS[kind].show(marker[2]);
+  } else {
+    for (const match of shownText.matchAll(/https?:\/\/[^\s<>"`]+/gi)) {
+      const href = match[0].replace(/[.,;!?)\]]+$/, "");
+      try {
+        const url = new URL(href);
+        if (!["http:", "https:"].includes(url.protocol)) continue;
+        const link = document.createElement("a"); link.className = "action";
+        link.href = url.href; link.target = "_blank"; link.rel = "noopener noreferrer";
+        link.textContent = "Open"; link.setAttribute("aria-label", "Open " + url.hostname + " in a new tab");
+        links.append(link);
+      } catch (_) {}
+    }
+  }
+  relayout(); keep();
+}
+document.getElementById("copy").addEventListener("click", async () => {
+  const version = showVersion;
+  try {
+    await navigator.clipboard.writeText(shownText);
+    if (version === showVersion) cardNote.textContent = "Copied.";
+  } catch (_) { if (version === showVersion) cardNote.textContent = "Could not copy. Press and hold the text to select it."; }
+});
+function dismissCard() {
+  closeImage(); clipStop(); card.hidden = true; scr.classList.remove("showing"); showVersion++;
+  relayout(); keep();
+}
+document.getElementById("dismiss").addEventListener("click", dismissCard);
+shownImage.addEventListener("error", () => {
+  if (cardImage.hidden) return;
+  cardImage.hidden = true; cardNote.textContent = "Image unavailable or expired. Ask the desk to share it again.";
+  closeImage(); sprite.wince();
+});
+cardImage.addEventListener("click", () => {
+  largeImage.src = shownImage.src; largeImage.classList.remove("zoomed"); zoom.textContent = "Zoom in";
+  viewer.showModal();
+});
+zoom.addEventListener("click", () => { zoom.textContent = largeImage.classList.toggle("zoomed") ? "Fit image" : "Zoom in"; });
+document.getElementById("closeimage").addEventListener("click", closeImage);
+
+const handoffBox = document.getElementById("handoff"), handoffText = document.getElementById("handofftext");
+let handoffParked = false;  // Back to Sheprd parked the sign-in: a "!" over the Shepherd; his tap (or his mirror button) reopens it
+function labelBtn() { btn.textContent = handoffParked ? "Sign-in waiting: open it" : btn.disabled ? "Calling" : pc ? "Hang up" : "Call"; }
+let handoffFrame = document.getElementById("handoffframe");
+// The bridge is the gate: a link reaches this page only if it fully matches VOICE_HANDOFF_URL_RE there (unset means
+// no handoffs). The page cannot read that knob; it still frames nothing but an https tailnet link.
+const HANDOFF_URL = /^https:\/\/[a-z0-9-]+(?:\.[a-z0-9-]+)*\.ts\.net\/[A-Za-z0-9\/_-]{1,200}$/;
+function showHandoff(message) {
+  const url = typeof message.url === "string" && HANDOFF_URL.test(message.url) ? message.url : "";
+  if (!url) return closeHandoff();  // null: the handoff cleared or timed out, and the desk carries on
+  if (handoffFrame.getAttribute("src") !== url) handoffFrame.setAttribute("src", url);
+  handoffText.textContent = typeof message.reason === "string" && message.reason.trim()
+    ? "Your desk needs you: " + message.reason.trim() : "Your desk needs you to sign in.";
+  openHandoff();
+}
+function openHandoff() {
+  closeImage(); game.hide();
+  handoffBox.hidden = false; handoffParked = false; labelBtn(); scr.classList.add("handoff");
+  if (world && world.setMark) world.setMark(null);
+  relayout(); document.getElementById("handoffback").focus();
+}
+function closeHandoff() {
+  // A fresh element, not about:blank: the phone app sends non-http(s) frame loads to the browser.
+  const fresh = handoffFrame.cloneNode(false);
+  fresh.removeAttribute("src"); handoffFrame.replaceWith(fresh); handoffFrame = fresh;
+  handoffBox.hidden = true; handoffParked = false; labelBtn(); scr.classList.remove("handoff");
+  if (world && world.setMark) world.setMark(null);
+  relayout();
+}
+function parkHandoff() {  // Back to Sheprd: the sign-in waits as a "!" over the Shepherd; tap him to reopen it (2026-11-07: no sign-in button)
+  handoffBox.hidden = true; scr.classList.remove("handoff"); handoffParked = true; labelBtn();
+  if (world && world.setMark) world.setMark("handoff");
+  relayout(); say("The sign-in is waiting. Tap me when you want it back.");
+}
+document.getElementById("handoffback").addEventListener("click", parkHandoff);
+// A tap on the Shepherd: reopens a parked sign-in; off call it calls; on a call, a second tap within 3 s hangs up.
+let hangTapAt = 0;
+function shepherdTap() {
+  if (handoffParked) return openHandoff();
+  if (bubble.revealAll()) { hangTapAt = 0; return; }
+  if (viewOnly) return location.assign("call?auto");
+  if (pc) {
+    if (performance.now() - hangTapAt < 3000) { hangTapAt = 0; hangup(); }
+    else { hangTapAt = performance.now(); say("Tap me again to hang up."); }
+    return;
+  }
+  if (!btn.disabled) call();
+}
+
+// Off call the page polls the desk's cards and its herd (every 3 s) and feeds the world.
+async function pollCard() {
+  if (!pc && !btn.disabled) {
+    const version = showVersion, controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 6500);
+    try {
+      const [response, herdResponse, uiResponse] = await Promise.all([
+        api("api/show", { cache: "no-store", signal: controller.signal }).catch(() => null),
+        api("api/herd", { cache: "no-store", signal: controller.signal }).catch(() => null),
+        typeof SheprdLive !== "undefined" ? api("api/ui-version", { cache: "no-store", signal: controller.signal }).catch(() => null) : null]);
+      if (uiResponse && uiResponse.ok) uiNotice(await uiResponse.json());
+      if (herdResponse && herdResponse.ok) {  // first: a card fetch that fails must not hold back the herd
+        const h = await herdResponse.json().catch(() => null);
+        if (!pc && h && Array.isArray(h.herd)) herd(h.herd);
+      }
+      if (!response || !response.ok) throw new Error("offline");
+      const message = await response.json();
+      if (!pc && !btn.disabled && version === showVersion) {
+        if (message && message.type === "show") showCard(message);
+        else if (viewOnly && card.hidden) say("No cards from the desk yet. When it shows you something, it lands here.");
+        sync.hidden = true;
+      }
+    } catch (_) {
+      if (!pc && !btn.disabled) { sync.textContent = "Cannot check for new cards. Retrying…"; sync.hidden = false; }
+    } finally { clearTimeout(timeout); }
+  }
+  setTimeout(pollCard, 3000);
+}
+
+const picker = document.getElementById("media"), uploads = document.getElementById("uploads");
+document.getElementById("attach").addEventListener("click", () => picker.click());
+picker.addEventListener("change", () => {
+  for (const file of picker.files) uploadMedia(file);
+  picker.value = "";
+});
+function uploadMedia(file) {
+  const row = document.createElement("div"), name = document.createElement("p"), message = document.createElement("p");
+  const progress = document.createElement("progress"), retry = document.createElement("button");
+  row.className = "upload win"; name.textContent = file.name;
+  progress.max = 100; progress.value = 0; progress.setAttribute("aria-label", "Upload progress for " + file.name);
+  retry.type = "button"; retry.className = "action"; retry.textContent = "Retry"; retry.hidden = true;
+  row.append(name, progress, message, retry); uploads.append(row);
+  let retryAction = send;
+  function failed(detail, action = send) { message.textContent = detail; retry.hidden = false; retryAction = action; sprite.wince(); }
+  async function watch(id) {
+    try {
+      const response = await api("api/media/" + encodeURIComponent(id), { cache: "no-store" });
+      if (!response.ok) throw new Error("Could not check delivery (" + response.status + ").");
+      const result = await response.json();
+      if (result.state === "sent") {
+        message.textContent = "Sent. Claude is looking at it.";
+        return;
+      }
+      if (result.state === "error") return failed("Could not prepare or deliver this file: " + result.detail);
+      setTimeout(() => watch(id), 1500);
+    } catch (error) { failed(error.message || "Could not check delivery. Try again.", () => watch(id)); }
+  }
+  function send() {
+    retry.hidden = true; progress.value = 0; message.textContent = "Uploading: 0%";
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", "api/media?name=" + encodeURIComponent(file.name));
+    xhr.setRequestHeader("Content-Type", file.type || "application/octet-stream");
+    xhr.setRequestHeader("X-Sheprd", "1");  // like api(): the voice host refuses a request without it
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable) { const percent = Math.round(event.loaded / event.total * 100);
+        progress.value = percent; message.textContent = "Uploading: " + percent + "%"; }
+    };
+    xhr.onerror = () => failed("Upload failed. Check your connection and retry.");
+    xhr.onabort = () => failed("Upload stopped. Tap Retry to send it again.");
+    xhr.onload = () => {
+      if (xhr.status !== 202) {
+        let detail = "Upload failed (" + xhr.status + ").";
+        try { detail = JSON.parse(xhr.responseText).detail || detail; } catch (_) {}
+        return failed(detail);
+      }
+      try { progress.value = 100; message.textContent = "Uploaded. Preparing it for Claude…"; watch(JSON.parse(xhr.responseText).id); }
+      catch (_) { failed("Could not confirm the upload. Tap Retry."); }
+    };
+    xhr.send(file);
+  }
+  retry.addEventListener("click", () => { retry.hidden = true; retryAction(); }); send();
+}
+
+// Typing (spec: "the ability to type as well as talk"). On a call the answer comes down the call; off call the page
+// follows the desk's reply stream itself (R16: open it, wait for ready, then post) and bubbles the answer silently.
+const typebox = document.getElementById("typebox");
+let typeTarget = null;  // a sheep's pane id while Text-to-a-sheep is open (Task 4b), else the desk
+let talker = null;  // {id, name} while a sheep is the speaker (R18: identity is the id; the name is display only)
+let follow = null;
+function openFollow(target) {
+  if (follow && follow.target === target) return follow.ready;
+  closeFollow();
+  const f = follow = { target, controller: new AbortController(), busy: false, idle: 0, reader: null };
+  f.ready = new Promise((resolve, reject) => { f.resolve = resolve; f.reject = reject; });
+  f.ready.catch(() => {});
+  (async () => {
+    try {
+      const response = await api("api/events?follow=" + encodeURIComponent(target), { cache: "no-store", signal: f.controller.signal });
+      if (!response.ok || !response.body) throw new Error("the reply stream answered " + response.status);
+      const reader = f.reader = response.body.getReader(), decoder = new TextDecoder();
+      let buffer = "";
+      armIdle(f);
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        let nl;
+        while ((nl = buffer.indexOf("\n")) >= 0) { const line = buffer.slice(0, nl); buffer = buffer.slice(nl + 1); if (line.trim()) followLine(f, line); }
+      }
+    } catch (_) {}
+    finally { clearTimeout(f.idle); if (follow === f) follow = null; f.reject(new Error("the reply stream closed")); }
+  })();
+  return f.ready;
+}
+function followLine(f, line) {
+  let event; try { event = JSON.parse(line); } catch (_) { return; }
+  if (!event || typeof event !== "object") return;
+  if (event.type === "ui-update") uiNotice(event);
+  armIdle(f);
+  if (event.ready) f.resolve();
+  if (typeof event.busy === "boolean") { f.busy = event.busy; thinking(event.busy); }
+  if ("speaker" in event) setSpeaker(event.speaker);
+  // R20: a sheep's stream answers in that sheep's dialogue; the desk's stream in Sheprd's (or the seated talker's)
+  const pane = f.target !== "desk" ? f.target : null;
+  if (typeof event.say === "string") bubble.say(event.say, { paced: false, who: pane, speaker: pane ? ((herdById.get(pane) || {}).name || pane) : talker && talker.name });
+  if (typeof event.show === "string") showCard({ type: "show", text: event.show, id: event.id });
+  if (Array.isArray(event.herd)) herd(event.herd);
+}
+function armIdle(f) { clearTimeout(f.idle); f.idle = setTimeout(() => { if (f.busy) armIdle(f); else closeFollow(f); }, FOLLOW_IDLE_MS); }
+function closeFollow(f = follow) {
+  if (!f) return;
+  if (follow === f) follow = null;
+  clearTimeout(f.idle);
+  try { f.controller.abort(); } catch (_) {}
+  if (f.reader) f.reader.cancel().catch(() => {});
+}
+typebox.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const text = String(typed.value || "").trim();
+  if (!text || text.length > 4000) return;
+  typed.value = "";
+  const to = typeTarget;
+  // 5b: a desk turn carries the open sheep as context (the HTTP route does not read the call channel's state)
+  const context = !to && openSheep ? { context: { sheep: openSheep } } : {};
+  try {
+    // R16/R20: a sheep's answer comes down its own reply stream, on a call too (the call only carries the desk's
+    // voice); a desk turn off call follows the desk's stream. Open it and wait for ready before the post.
+    if (to || !pc) await openFollow(to || "desk");
+    const response = await api("api/turn", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text, typed: true, ...(to ? { to } : {}), ...context }) });
+    if (response.status !== 202) throw new Error("the desk answered " + response.status);
+    thread.add("you", "You", text);
+    if (!pc) say("Sent. The answer lands in the thread.");
+  } catch (error) {
+    typed.value = text; sprite.wince();
+    say("Could not send: " + (error && error.message || error) + ". Try again.");
+  }
+});
+function setSpeaker(s) {
+  talker = s && typeof s === "object" && typeof s.id === "string" && s.id ? { id: s.id, name: typeof s.name === "string" ? s.name : "" } : null;
+  sprite.set({ aside: !!talker });
+  if (openSheep) fillSheep(herdById.get(openSheep));
+}
+
+// The herd (Task 4b/4c): every `herd` message (call channel, reply stream or the off-call poll) replaces the herd.
+// The world gets herdLayout's output; the keyboard mirror lists the placed sheep; status changes move the portrait.
+const herdPanel = document.getElementById("herd"), herdList = document.getElementById("herdlist");
+const herdButtons = document.getElementById("herdbuttons"), herdMore = document.getElementById("herdmore");
+let herdNow = [], herdById = new Map(), openSheep = null, recapVersion = 0;
+function herd(list) {
+  const clean = list.filter((s) => s && typeof s === "object" && typeof s.id === "string" && PANE.test(s.id)).map((s) => ({
+    // name: the bridge's plain name for the tab (a small model's, once it has one), else the tab's own name
+    id: s.id, name: [s.plain, s.name].find((n) => typeof n === "string" && n.trim())?.trim().slice(0, 40) || s.id,
+    line: typeof s.line === "string" ? s.line.trim().slice(0, 160) : "",
+    status: STATUSES.includes(s.status) ? s.status : "unknown", talk: s.talk === true }));
+  for (const s of clean) {
+    const old = herdById.get(s.id);
+    if (old && old.status !== s.status) { if (s.status === "blocked") sprite.surprise(); else if (s.status === "done") sprite.happy(); }
+  }
+  herdNow = clean; herdById = new Map(clean.map((s) => [s.id, s]));
+  const placed = placeHerd(clean);
+  if (world) world.setHerd(herdLayout(clean));
+  syncButtons(herdButtons, [...placed.gate, ...placed.home, ...placed.field, ...placed.rest].map((s) => ({ key: s.id, id: s.id, text: s.name + ", " + SAID[s.status], open: () => showSheep(s.id) })));
+  syncButtons(herdMore, placed.more.length ? [{ key: "more", text: "More sheep: " + placed.more.length, open: () => showList() }] : []);
+  if (openSheep) { const s = herdById.get(openSheep); if (s) fillSheep(s); else closeSheep(); }
+  if (!herdList.hidden) fillList();
+  bubble.push(); keep();
+}
+// Buttons keyed by id, updated in place: an unchanged set touches nothing, so keyboard focus survives a poll.
+// `wrap` puts each button in a list item (the R19 lists); `cls` styles it.
+function syncButtons(box, items, { wrap, cls } = {}) {
+  const node = (b) => (wrap ? b.parentNode : b);
+  const have = new Map([...box.children].map((n) => { const b = wrap ? n.children[0] : n; return [b.getAttribute("data-key"), b]; }));  // children is an HTMLCollection: spread it
+  const next = items.map((it) => {
+    let b = have.get(it.key);
+    if (!b) {
+      b = document.createElement("button"); b.type = "button"; b.setAttribute("data-key", it.key);
+      if (cls) b.className = cls; if (it.id) b.setAttribute("data-id", it.id);
+      b.addEventListener("click", () => b.open());
+      if (wrap) { const li = document.createElement("li"); li.append(b); }
+    }
+    b.open = it.open;
+    if (b.textContent !== it.text) b.textContent = it.text;
+    return b;
+  });
+  const same = next.length === box.children.length && next.every((b, i) => node(b) === box.children[i]);  // same nodes in the same order: nothing to do
+  if (same) return;
+  const focused = [...have.values()].find((b) => b === document.activeElement);  // removal blurs it, even when it comes back
+  box.replaceChildren(...next.map(node));
+  if (focused && next.includes(focused)) focused.focus();
+}
+const herdName = document.getElementById("herdname"), herdStatus = document.getElementById("herdstatus"), herdSummary = document.getElementById("herdsummary");
+const herdTalk = document.getElementById("herdtalk"), herdText = document.getElementById("herdtext");
+function fillSheep(s) {
+  herdName.textContent = s.name; herdStatus.textContent = SAID[s.status];
+  // Talk is a call feature (/api/target answers 409 off call); while this sheep is the speaker it reads Back to Sheprd
+  const seated = talker && talker.id === s.id;
+  herdTalk.hidden = !(pc || demoCall) || !(s.talk || seated);
+  herdTalk.textContent = seated ? "Back to " + NAME : "Talk";
+}
+function sendContext(id) {
+  try { if (pc && events && events.readyState === "open") events.send(JSON.stringify({ type: "context", sheep: id })); } catch (_) {}
+}
+async function showSheep(id) {
+  const s = herdById.get(id);
+  if (!s) return;
+  const version = ++recapVersion;
+  if (typeTarget && typeTarget !== id) { typeTarget = null; typeTo(NAME); }  // Text was aimed at the last sheep
+  openSheep = id; herdList.hidden = true; closeImage(); game.hide();
+  // a recap and nothing else (no ids, paths or raw lines): the one-liner at once, the fuller recap when it lands
+  fillSheep(s); herdSummary.textContent = s.line || "Getting a recap...";
+  herdPanel.hidden = false; relayout(); sendContext(id); keep();
+  document.getElementById("herdclose").focus();
+  if (demo) { herdSummary.textContent = "Demo recap: nearly done, one check left."; return; }
+  try {
+    const r = await api("api/recap?id=" + encodeURIComponent(id) + "&summary=1", { cache: "no-store" });
+    if (!r.ok) throw new Error("recap " + r.status);
+    const rec = await r.json();
+    if (version !== recapVersion) return;
+    herdSummary.textContent = typeof rec.summary === "string" && rec.summary.trim() ? rec.summary : s.line || "Recap unavailable";
+  } catch (_) { if (version === recapVersion) herdSummary.textContent = s.line || "Recap unavailable"; }
+}
+function closeSheep() {
+  if (herdPanel.hidden) return;
+  recapVersion++; herdPanel.hidden = true; openSheep = null; typeTarget = null; typeTo(NAME);
+  sendContext(null); relayout(); keep();
+}
+herdTalk.addEventListener("click", async () => {
+  const id = talker && talker.id === openSheep ? null : openSheep;
+  try {
+    const r = await api("api/target", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
+    if (r.status !== 202 && !r.ok) throw new Error("the desk answered " + r.status);
+  } catch (error) { sprite.wince(); say("Could not switch: " + (error && error.message || error) + "."); }
+});
+herdText.addEventListener("click", () => {
+  const s = herdById.get(openSheep);
+  if (!s) return;
+  typeTarget = s.id; typeTo(s.name); typed.focus(); keep();
+});
+document.getElementById("herdclose").addEventListener("click", closeSheep);
+// R19: the "+N" sign opens a list of the sheep past the placed ones (name + one-line recap), each opening its panel.
+const herdListItems = document.getElementById("herdlistitems"), herdListEmpty = document.getElementById("herdlistempty");
+function fillList() {
+  const these = placeHerd(herdNow).more;
+  syncButtons(herdListItems, these.map((s) => ({ key: s.id, id: s.id, text: s.name + ": " + (s.line || SAID[s.status]), open: () => showSheep(s.id) })), { wrap: true, cls: "action" });
+  herdListEmpty.hidden = these.length > 0;
+}
+function showList() {
+  fillList(); closeImage(); game.hide();
+  herdList.hidden = false; relayout(); document.getElementById("herdlistclose").focus();
+}
+function closeList() { if (herdList.hidden) return; herdList.hidden = true; relayout(); }
+document.getElementById("herdlistclose").addEventListener("click", closeList);
+// Escape or B closes the top panel; B never fires while typing.
+document.addEventListener("keydown", (e) => {
+  const a = document.activeElement, typing = !!a && (/^(input|textarea|select)$/i.test(a.tag || a.tagName || "") || a.isContentEditable);
+  if (e.key !== "Escape" && !((e.key === "b" || e.key === "B") && !typing)) return;
+  if (!herdList.hidden) closeList(); else if (!herdPanel.hidden) closeSheep(); else if (!card.hidden) dismissCard(); else if (!handoffBox.hidden) parkHandoff(); else if (game.on()) { game.hide(); document.getElementById("gamesopen").focus(); } else return;
+  e.preventDefault();
+});
+
+function gathered(pc) {  // the bot takes one offer with its candidates; 2 s is plenty on the tailnet
+  return new Promise((done) => {
+    if (pc.iceGatheringState === "complete") return done();
+    const t = setTimeout(done, 2000);
+    pc.addEventListener("icegatheringstatechange", () => { if (pc.iceGatheringState === "complete") { clearTimeout(t); done(); } });
+  });
+}
+
+function audioContext() {
+  try {
+    if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
+    if (ac.state === "suspended") ac.resume().catch(() => {});
+    return ac;
+  } catch (_) { return null; }  // Visual signals still work when WebAudio is unavailable.
+}
+function cue(lost = false) {
+  if (!ac || ac.state !== "running") return;
+  try {
+    // Quiet, short tones; the mic keeps echo cancellation on and is never connected to the speakers.
+    (lost ? [330, 220] : [660]).forEach((frequency, i) => {
+      const tone = ac.createOscillator(), gain = ac.createGain(), start = ac.currentTime + i * .14;
+      tone.frequency.value = frequency;
+      gain.gain.setValueAtTime(0, start); gain.gain.linearRampToValueAtTime(lost ? .04 : .025, start + .008);
+      gain.gain.exponentialRampToValueAtTime(.0001, start + (lost ? .11 : .065));
+      tone.connect(gain); gain.connect(ac.destination); tone.start(start); tone.stop(start + .12);
+      tone.onended = () => { tone.disconnect(); gain.disconnect(); };
+    });
+  } catch (_) {}
+}
+function showWarning(text) {
+  if (text && text !== warning.textContent) { cue(true); sprite.wince(); }
+  warning.textContent = text; warning.hidden = !text;
+}
+function updateWarning() {
+  const tracks = mic ? mic.getAudioTracks() : [];
+  const localLost = tracks.some((t) => t.readyState === "ended" || t.muted);
+  showWarning(connectionIssue || channelIssue || (localLost ? "Microphone interrupted. Your voice may not be reaching the desk." :
+    !muted && receiving === false ? "The desk is not receiving your audio. Check the mic or call again." :
+    !muted && pc && healthAt && performance.now() - healthAt > 7000 ? "Audio check lost. Your voice may not be reaching the desk. Call again if this continues." : ""));
+  if (!warning.hidden) hearing(false);
+}
+function hearing(speaking) {
+  const on = speaking && !muted && warning.hidden;
+  if (on && !userSpeaking) cue();
+  userSpeaking = on; scr.classList.toggle("hearing", on);
+  heard.textContent = !mic ? "Mic off" : muted ? "Mic muted" : on ? "I hear you" : "Mic live";
+  sprite.set({ listening: on });
+}
+function appMessage(event) {
+  let m; try { m = JSON.parse(event.data); } catch (_) { return; }
+  if (!m || typeof m !== "object") return;
+  if (m.type === "ui-update") uiNotice(m);
+  else if (m.type === "busy") thinking(!!m.busy);
+  else if (m.type === "show") showCard(m);
+  else if (m.type === "handoff") showHandoff(m);
+  else if (m.type === "user-turn" && typeof m.speaking === "boolean") hearing(m.speaking);
+  else if (m.type === "heard" && typeof m.text === "string" && m.text.trim()) thread.add("you", "You", m.text.trim());  // what the call heard him say
+  else if (m.type === "say" && typeof m.text === "string") bubble.say(m.text, { paced: true, speaker: typeof m.speaker === "string" ? m.speaker : "" });
+  else if (m.type === "said") bubble.done(true);
+  else if (m.type === "reveal") bubble.reveal(m.sentences);
+  else if (m.type === "say-stop") bubble.stop(m.heard);
+  else if (m.type === "unspoken" && typeof m.text === "string") bubble.unspoken(m.text);
+  else if (m.type === "speaker") setSpeaker(m);
+  else if (m.type === "herd" && Array.isArray(m.herd)) herd(m.herd);
+  else if (m.type === "audio-health" && typeof m.receiving === "boolean") {
+    receiving = m.receiving; healthAt = performance.now(); updateWarning();
+  }
+}
+function watchHealth(peer) {
+  if (peer !== pc) return;
+  updateWarning(); checkPlayout(peer); healthTimer = setTimeout(() => watchHealth(peer), 2000);
+}
+
+// Coming back from another app could leave the desk's voice silent while the call stayed up (2026-11-03:
+// after the camera and Photos the desk spoke and he heard nothing; volume up did nothing). Returning wakes WebAudio and
+// a paused voice but never rebuilds a working output (a rebuild briefly drops the stream). The output is rebuilt
+// only when the speaker stops pulling audio on two checks in a row. Every hide, return and rebuild is reported to
+// the call server's log ("page audio:") with downlink levels, so a silent spell shows whether audio reached the phone.
+let playedSeconds = -1, stalls = 0, revivedAt = -Infinity;
+async function audioState(peer) {
+  const state = { visible: !document.hidden, ac: ac && ac.state, paused: voice.paused, ready: voice.readyState,
+    muted: voice.muted, volume: voice.volume, connection: peer.connectionState,
+    mic: mic ? mic.getAudioTracks().map((t) => t.readyState + (t.muted ? "/muted" : "")).join() : "none" };
+  try {
+    (await peer.getStats()).forEach((s) => {
+      if (s.type === "media-playout") state.played = s.totalSamplesDuration;
+      if (s.type === "inbound-rtp" && s.kind === "audio") Object.assign(state, { packets: s.packetsReceived,
+        energy: s.totalAudioEnergy, level: s.audioLevel, concealed: s.concealedSamples, received: s.totalSamplesReceived });
+    });
+  } catch (_) {}
+  return state;
+}
+function send(peer, message) {
+  try { if (peer === pc && events && events.readyState === "open") events.send(JSON.stringify({ type: "page-audio", ...message })); } catch (_) {}
+}
+async function report(peer, reason) { send(peer, { reason, ...(await audioState(peer)) }); }
+async function checkPlayout(peer) {
+  if (document.hidden) return;
+  const state = await audioState(peer);
+  if (peer !== pc || typeof state.played !== "number") return;
+  const stalled = playedSeconds >= 3 && state.played - playedSeconds < 0.5;  // not before the voice has started
+  playedSeconds = state.played;
+  stalls = stalled ? stalls + 1 : 0;
+  if (stalls >= 2) rebuild(peer, "playout stalled");
+}
+async function rebuild(peer, reason) {
+  if (performance.now() - revivedAt < 15000) return;
+  revivedAt = performance.now(); playedSeconds = -1; stalls = 0;
+  await report(peer, reason + ": before");
+  const stream = voice.srcObject;
+  if (pc !== peer || !stream) return;
+  voice.srcObject = null; voice.srcObject = stream; voice.play().catch(() => {}); listen(stream);
+  setTimeout(() => { if (pc === peer) report(peer, reason + ": after"); }, 3000);
+}
+document.addEventListener("visibilitychange", () => {
+  const peer = pc;
+  if (!peer) return;
+  if (document.hidden) { send(peer, { reason: "hidden" }); return; }  // no await: a hidden page may never finish one
+  audioContext(); keepAwake(true);
+  if (voice.paused) voice.play().catch(() => {});
+  playedSeconds = -1; stalls = 0;
+  report(peer, "back in the app");
+  setTimeout(() => { if (pc === peer) report(peer, "back in the app +5s"); }, 5000);
+});
+function watchMic(stream) {
+  heard.textContent = "Mic live";
+  stream.getAudioTracks().forEach((track) => {
+    const changed = () => { if (mic === stream) updateWarning(); };
+    track.addEventListener("mute", changed); track.addEventListener("unmute", changed); track.addEventListener("ended", changed);
+  });
+  try {
+    const an = ac.createAnalyser(); an.fftSize = 512;
+    ac.createMediaStreamSource(stream).connect(an);
+    const buf = new Float32Array(an.fftSize);
+    let loud = -Infinity, tick = 0;
+    (function poll() {
+      if (mic !== stream || !ac) return;
+      an.getFloatTimeDomainData(buf);
+      let sum = 0; for (const v of buf) sum += v * v;
+      loud = Math.max(loud, 10 * Math.log10(sum / buf.length || 1e-12));
+      if (performance.now() - tick >= 90) {
+        // A few redraws a second from the loudest moment since the last one. A lit block stays lit until the level
+        // drops 3 dB under its step (an unlit one needs 3 dB over), and the stair falls at most one block per redraw.
+        tick = performance.now();
+        const off = muted || stream.getAudioTracks().some((t) => t.muted || t.readyState === "ended");
+        const want = off ? 0 : BAR_DB.filter((db, i) => loud >= db + (i < lit ? -3 : 3)).length;
+        micBars(want >= lit || off ? want : lit - 1); loud = -Infinity;
+      }
+      micMeter = requestAnimationFrame(poll);
+    })();
+  } catch (_) { heard.textContent = "Mic level unavailable"; }
+}
+
+// The portrait's mouth moves with the desk's actual voice; local mic analysis has no speaker output.
+function listen(stream) {
+  try {
+    cancelAnimationFrame(meter);
+    if (!ac) return;
+    const an = ac.createAnalyser(); an.fftSize = 512;
+    ac.createMediaStreamSource(stream).connect(an);
+    const buf = new Uint8Array(an.frequencyBinCount);
+    let quiet = 0;
+    (function poll() {
+      if (!ac) return;
+      an.getByteTimeDomainData(buf);
+      let peak = 0; for (const v of buf) peak = Math.max(peak, Math.abs(v - 128));
+      sprite.level(peak > 40 ? 3 : peak > 20 ? 2 : peak > 6 ? 1 : 0);
+      if (peak > 6) { quiet = 0; heardVoice = true; voiceQuietAt = performance.now(); if (!scr.classList.contains("speaking")) { scr.classList.add("speaking"); sprite.set({ speaking: true }); } }
+      else if (++quiet > 10 && scr.classList.contains("speaking")) { scr.classList.remove("speaking"); sprite.set({ speaking: false }); }
+      meter = requestAnimationFrame(poll);
+    })();
+  } catch (_) {}
+}
+function deafen() {
+  cancelAnimationFrame(meter); cancelAnimationFrame(micMeter); scr.classList.remove("speaking"); sprite.set({ speaking: false }); sprite.level(0);
+  micBars(0); heard.textContent = "Mic off";
+  if (ac) { const a = ac; ac = null; setTimeout(() => a.close().catch(() => {}), 350); } // Let a drop cue finish.
+}
+addEventListener("pointerdown", () => { if (ac && ac.state === "suspended") ac.resume().catch(() => {}); });
+
+function setMuted(on) {
+  muted = on;
+  if (mic) mic.getAudioTracks().forEach((t) => { t.enabled = !on; });
+  mute.setAttribute("aria-pressed", String(on)); mute.setAttribute("aria-label", on ? "Unmute microphone" : "Mute microphone");
+  mute.classList.toggle("on", on); scr.classList.toggle("muted", on); sprite.set({ muted: on });
+  if (on) micBars(0);
+  hearing(false); if (pc) updateWarning();
+}
+mute.addEventListener("click", () => setMuted(!muted));
+
+let wake = null;
+async function keepAwake(on) {  // the screen stays on through a call
+  try {
+    if (on && !wake && typeof navigator !== "undefined" && navigator.wakeLock) {
+      wake = await navigator.wakeLock.request("screen"); wake.addEventListener("release", () => { wake = null; });
+    } else if (!on && wake) { const w = wake; wake = null; await w.release(); }
+  } catch (_) {}
+}
+
+async function call() {
+  if (pc || btn.disabled) return;
+  const attempt = ++callAttempt;
+  if (dropped) { dropped = false; boot.on("Reconnecting to your desk…"); }
+  connectionIssue = channelIssue = ""; receiving = null; healthAt = 0; showWarning(""); sync.hidden = true;
+  closeFollow();
+  audioContext();  // Unlock cues in the Call tap, before waiting for microphone permission.
+  btn.disabled = true; btn.textContent = "Calling"; scr.classList.add("calling"); shellState("calling");
+  sprite.set({ calling: true });
+  say("Connecting. If the call server is asleep this takes up to a minute.");
+  heard.textContent = "Allow microphone access to connect";
+  try {
+    // No auto gain: it lifted a voice a few feet away to the same level as his close-up one, so the server's near-field
+    // volume floor (VOICE_VAD_MIN_VOLUME) could not tell them apart (2026-11-04).
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: false }, video: false });
+    if (attempt !== callAttempt) { stream.getTracks().forEach((t) => t.stop()); return; }
+    mic = stream; watchMic(stream);
+    const peer = pc = new RTCPeerConnection();
+    mic.getTracks().forEach((t) => peer.addTrack(t, mic));
+    // The bot says when Claude is thinking; the portrait's thinking face stands in for any spoken "working on it".
+    const channel = events = peer.createDataChannel("events");
+    channel.onmessage = (e) => { if (pc === peer) appMessage(e); };
+    channel.onopen = () => {
+      if (pc !== peer) return;
+      channelIssue = ""; healthAt = performance.now(); receiving = null; updateWarning();
+      clearTimeout(healthTimer); watchHealth(peer);
+      if (openSheep) sendContext(openSheep);  // a panel opened before the channel came up (5b)
+    };
+    channel.onclose = channel.onerror = () => {
+      if (pc !== peer) return;
+      channelIssue = "Call signals disconnected. Hearing and new cards cannot be confirmed. Call again."; updateWarning();
+    };
+    peer.ontrack = (e) => {
+      if (pc !== peer) return;
+      const s = e.streams[0] || new MediaStream([e.track]); voice.srcObject = s; listen(s);
+    };
+    peer.onconnectionstatechange = () => {
+      if (pc !== peer) return;
+      if (peer.connectionState === "connected") { connectionIssue = ""; live(); updateWarning(); }
+      else if (peer.connectionState === "disconnected") {
+        connectionIssue = "Call connection interrupted. Your voice may not be reaching the desk."; updateWarning();
+      } else if (["failed", "closed"].includes(peer.connectionState)) {
+        hangup("Connection dropped. Tap me to reconnect.", true);
+      }
+    };
+    await peer.setLocalDescription(await peer.createOffer());
+    await gathered(peer);
+    if (pc !== peer) return;
+    const r = await api("api/offer", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sdp: peer.localDescription.sdp, type: peer.localDescription.type }) });
+    if (!r.ok) throw new Error("the call server answered " + r.status);
+    const answer = await r.json();
+    if (pc === peer) await peer.setRemoteDescription(answer);
+  } catch (e) {
+    if (attempt !== callAttempt) return;
+    hangup(e && e.name === "NotAllowedError" ? "The microphone is blocked. Allow it for this page, then tap me (the shepherd in the yard) to call."
+                                              : "Could not connect: " + (e && e.message || e) + ". Tap me (the shepherd in the yard) to try again.");
+    if (e && e.name === "NotAllowedError") heard.textContent = "Mic blocked";
+  }
+}
+
+function live() {
+  btn.disabled = false; btn.textContent = "Hang up";
+  scr.classList.remove("calling"); mute.disabled = false; sprite.set({ calling: false });
+  shellState("live"); keepAwake(true); relayout();
+  if (openSheep) fillSheep(herdById.get(openSheep));  // Talk appears now that the call is live
+  if (!healthAt) { healthAt = performance.now(); watchHealth(pc); }
+  say("You're on. Talk any time, even while it's speaking."); boot.off();
+}
+function shellState(kind) {  // the page's call state for CSS: off, calling, live
+  const main = scr.parentNode;
+  if (!main || !main.classList) return;
+  main.classList.toggle("calling", kind === "calling"); main.classList.toggle("live", kind === "live");
+}
+
+// Layout (R22): landscape fills the screen; the key strip (92 css px) and the text box (70) overlay the canvas there.
+function relayout() {
+  const w = typeof innerWidth === "number" ? innerWidth : 412, h = typeof innerHeight === "number" ? innerHeight : 915;
+  const land = w > h && h <= 600;
+  if (world) world.resize({ right: land ? 92 : 0, bottom: land ? 70 : 0 });  // css px; the world converts them with its new zoom
+}
+addEventListener("resize", relayout);
+
+// The waiting games (2026-11-02: the offline dino game; 2026-11-06: "add like 10 games"), one-colour pixel games on the
+// board above the thread. Each is a drop-in module from world/games.js's registry (SheprdGames.list(): see the README);
+// this is the one loop: ready screen, run, game over, best per game (localStorage), the picker, and the one button (the
+// pad, space). The PLAY sign opens the pane; only his choice opens it, and Close game or hang up hides it.
+// For a moment after a tap, or after the pane vanishes
+// (the field regrows under the thumb), taps on call buttons are swallowed so a tap can never hang up.
+var game = (() => {  // var: the node tests reach it as a context global
+  const box = document.getElementById("game"), pad = document.getElementById("pad"), cv = document.getElementById("board");
+  const hint = document.getElementById("gamehint"), picker = document.getElementById("picker");
+  const g = cv.getContext("2d");
+  const QUAD = { " ": 0, "█": 15, "▐": 5, "▌": 10, "▛": 14, "▜": 13, "▝": 4, "▘": 8 };  // bits tl,tr,bl,br = 8,4,2,1
+  const PX = 4, INK = "#1e2c24";
+  const games = () => (typeof SheprdGames !== "undefined" && SheprdGames && typeof SheprdGames.list === "function" ? SheprdGames.list() : []);
+  let state = "off", raf = 0, last = 0, cur = null, guard = 0, held = false, padTapped = false;
+  const G = { px: PX, ink: INK, paper: "#e4ecc8", g, w: 300, h: 150, score: 0, s: null, rnd: Math.random,
+    rect(x, y, w, h) { g.fillRect(Math.round(x / PX) * PX, Math.round(y / PX) * PX, Math.max(PX, Math.round(w / PX) * PX), Math.max(PX, Math.round(h / PX) * PX)); },
+    text(str, x, y, align) { g.font = "400 17px VT, ui-monospace, monospace"; g.textAlign = align || "left"; g.fillText(str, x, y); },
+    rows(lines, x, top) {  // block characters drawn as pixels: no font needed
+      lines.forEach((line, r) => [...line].forEach((ch, c) => {
+        const q = QUAD[ch] || 0;
+        [[8, 0, 0], [4, 1, 0], [2, 0, 1], [1, 1, 1]].forEach(([bit, dx, dy]) => {
+          if (q & bit) g.fillRect(x + (c * 2 + dx) * PX, top + (r * 2 + dy) * PX, PX, PX); });
+      }));
+    } };
+  const store = { get(k) { try { return localStorage.getItem(k); } catch (_) { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch (_) {} } };
+  const best = (id) => +store.get("sheprdBest." + id) || (id === "run" ? +store.get("claudeRunBest") || 0 : 0);  // the runner's old key counts
+  function size() { const r = cv.getBoundingClientRect(), d = devicePixelRatio || 1;
+    G.w = Math.max(120, r.width || 300); G.h = Math.max(120, r.height || 150);
+    cv.width = G.w * d; cv.height = G.h * d; g.setTransform(d, 0, 0, d, 0, 0); }
+  function draw() {
+    g.clearRect(0, 0, G.w, G.h); g.fillStyle = INK; g.globalAlpha = 1;
+    if (cur) { cur.draw(G); g.fillStyle = INK; g.globalAlpha = 1; }
+    const b = cur ? Math.max(best(cur.id), state === "over" ? Math.floor(G.score) : 0) : 0;
+    G.text(String(Math.floor(G.score)).padStart(5, "0") + (b ? "  HI " + String(b).padStart(5, "0") : ""), G.w - 10, 22, "right");
+  }
+  function step(t) {
+    const dt = Math.min(32, t - (last || t)) / 16.7; last = t;
+    let over = false;
+    try { over = !!cur.step(G, dt); } catch (_) { over = true; }  // a broken module ends its run, never the page
+    draw();
+    if (over) return done();
+    raf = requestAnimationFrame(step);
+  }
+  function done() {
+    state = "over"; held = false;
+    const score = Math.floor(G.score);
+    if (score > best(cur.id)) store.set("sheprdBest." + cur.id, String(score));
+    draw();
+    hint.textContent = "Score " + score + ". Tap to play again, or pick another game.";
+    picker.hidden = false;
+  }
+  function start() {
+    if (!cur) return;
+    G.score = 0; G.s = null; cur.start(G); last = 0; state = "run"; held = false;
+    hint.textContent = cur.hint; picker.hidden = true;
+    raf = requestAnimationFrame(step);
+  }
+  function tap() { if (state === "run") { held = true; try { cur.tap(G); } catch (_) {} } else if (state !== "off") start(); }
+  function release() { if (held && state === "run" && cur.release) { try { cur.release(G); } catch (_) {} } held = false; }
+  function ready() {  // the picked game's first frame, still; a tap starts it
+    cancelAnimationFrame(raf); size(); G.score = 0; G.s = null;
+    if (cur) { try { cur.start(G); } catch (_) {} }
+    draw(); state = "ready"; picker.hidden = false;
+    hint.textContent = cur ? "Tap to play " + cur.name + " while you wait." : "No games loaded.";
+  }
+  let want = null;  // a pick made before the modules finished loading
+  function pick(id) {
+    const list = games();
+    if (!list.length) { want = id; return; }
+    cur = list.find((x) => x.id === id) || list[0] || null;
+    if (cur) store.set("sheprdGame", cur.id);
+    pad.setAttribute("aria-label", cur ? cur.name + ": tap here or press space to " + cur.verb.toLowerCase() : "Game board");
+    syncPicker();
+  }
+  function syncPicker() {
+    syncButtons(picker, games().map((gm) => ({ key: gm.id, text: gm.name, open: () => { if (state === "run") return; pick(gm.id); ready(); } })), { cls: "pick" });
+    for (const b of picker.children) b.setAttribute("aria-pressed", String(!!cur && b.getAttribute("data-key") === cur.id));
+  }
+  function show() {
+    if (state !== "off" || !card.hidden || !handoffBox.hidden || !herdPanel.hidden || !herdList.hidden) return;
+    box.classList.add("on");
+    if (!cur) pick(store.get("sheprdGame") || "run"); else syncPicker();
+    if (!cur && typeof SheprdGames !== "undefined" && SheprdGames.whenLoaded) SheprdGames.whenLoaded(() => { if (state !== "off" && !cur) { pick(want || store.get("sheprdGame") || "run"); ready(); } });  // the modules were still loading
+    ready(); relayout();
+  }
+  function hide() {
+    if (state !== "off") guard = Math.max(guard, performance.now() + 800);
+    cancelAnimationFrame(raf); state = "off"; held = false; box.classList.remove("on");
+    relayout();
+  }
+  document.getElementById("gamesopen").addEventListener("click", show);
+  document.getElementById("gameclose").addEventListener("click", () => { hide(); document.getElementById("gamesopen").focus(); });
+  pad.addEventListener("pointerdown", (e) => { e.preventDefault(); guard = performance.now() + 600; padTapped = true; tap(); });
+  pad.addEventListener("pointerup", () => release()); pad.addEventListener("pointercancel", () => release());
+  pad.addEventListener("click", (e) => { e.stopPropagation(); if (padTapped) { padTapped = false; return; } tap(); release(); });  // keyboard activation
+  pad.addEventListener("keydown", (e) => { if (e.key === " " || e.key === "ArrowUp" || e.key === "Enter") { e.preventDefault(); if (!e.repeat) tap(); } });
+  pad.addEventListener("keyup", (e) => { if (e.key === " " || e.key === "ArrowUp" || e.key === "Enter") release(); });
+  addEventListener("click", (e) => {
+    if (performance.now() < guard && e.target.closest && e.target.closest("#props button") && !e.target.closest("#gamesopen")) {
+      e.preventDefault(); e.stopImmediatePropagation();
+    }
+  }, true);
+  addEventListener("resize", () => { if (state !== "off") { size(); draw(); } });
+  return { show,
+    reload() { const id = cur && cur.id, visible = state !== "off"; release(); cancelAnimationFrame(raf); cur = null; pick(id || store.get("sheprdGame") || "run"); if (visible) ready(); },
+    hide, jump: tap, pick, on: () => state !== "off", get current() { return cur; } };
+})();
+
+function uiNotice(message) { if (typeof SheprdLive !== "undefined") SheprdLive.notify(message); }
+if (typeof SheprdLive !== "undefined") SheprdLive.start((stage) => {
+  // Mount the replacement before disposing the previous canvas. The call, DOM listeners and audio stay alive.
+  const replacement = mountWorld(stage.SheprdWorld);
+  replacement.setHerd(herdLayout(herdNow));
+  const props = PROPS.map(p => ({ ...p, rows: p.id === "photo" ? stage.SHEPRD.SPRITES.camera.rows() : stage.SHEPRD.signGrid("PLAY").rows() }));
+  if (replacement.setProps) replacement.setProps(props.filter(p => p.rows));
+  if (replacement.setMark) replacement.setMark(handoffParked ? "handoff" : null);
+  const previous = world;
+  Object.assign(window, { SHEPRD: stage.SHEPRD, SheprdWorld: stage.SheprdWorld, SheprdGames: stage.SheprdGames });
+  world = replacement;
+  if (previous && previous.destroy) previous.destroy();
+  game.reload(); thread.refresh(); relayout();
+});
+
+function thinking(on) {
+  scr.classList.toggle("busy", on);
+  thinkLive.textContent = on ? "Thinking." : "";
+  sprite.set({ busy: on }); thread.waiting(on);
+  if (!on && pc) say("You're on. Talk any time, even while it's speaking.");
+}
+
+function hangup(msg, lost = false) {
+  callAttempt++;
+  dropped = lost; boot.off();
+  if (lost) showWarning("Connection dropped. The desk cannot hear you. Tap me (the shepherd) to reconnect.");
+  else showWarning("");
+  clearTimeout(healthTimer); events = null;
+  connectionIssue = channelIssue = ""; receiving = null; healthAt = 0;
+  thinking(false); game.hide(); closeHandoff(); closeList(); closeSheep(); deafen(); bubble.stop(); setSpeaker(null); clipHold(false);
+  if (pc) { const p = pc; pc = null; p.close(); }
+  if (mic) { mic.getTracks().forEach((t) => t.stop()); mic = null; }
+  voice.srcObject = null;
+  setMuted(false); mute.disabled = true; scr.classList.remove("calling");
+  btn.disabled = false; btn.textContent = "Call"; hangTapAt = 0;
+  sprite.set({ calling: false, listening: false }); shellState("off"); keepAwake(false); relayout();
+  say(msg || "Call ended. Tap me (the shepherd in the yard) to call again.");
+}
+
+// What survives leaving the app (2026-11-07: "when I came back to the app, it wiped everything I was just doing"):
+// the phone app builds a fresh WebView for every call screen, so the thread, the desk's card (open, or dismissed so a poll does
+// not bring it back), the open sheep and a Text aimed at it, the half-typed line and the last herd are saved to
+// localStorage on each change and put back on load. Data only: no call, stream or timer is restored. ?demo never
+// reads or writes it.
+function keep() {
+  if (!kept || demo) return;
+  try {
+    localStorage.setItem(KEEP, JSON.stringify({ thread: thread.lines(), herd: herdNow, sheep: openSheep, to: typeTarget,
+      card: shownId === null ? null : { id: shownId, text: shownText, open: !card.hidden }, draft: String(typed.value || ""), size: grip.size }));
+  } catch (_) {}  // storage blocked or full: the page still works, it just forgets
+}
+if (!demo) {
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem(KEEP) || "null"); } catch (_) {}
+  if (saved && typeof saved === "object") {
+    if (Array.isArray(saved.herd)) herd(saved.herd);
+    if (typeof saved.size === "number") grip.set(saved.size, false);
+    for (const l of Array.isArray(saved.thread) ? saved.thread : [])
+      if (l && ["desk", "sheep", "you"].includes(l.kind) && typeof l.name === "string" && typeof l.text === "string") {
+        const e = thread.add(l.kind, l.name, l.text);
+        if (l.kind !== "you" && typeof l.unspoken === "string" && l.unspoken) thread.unspoken(e, l.unspoken);
+      }
+    const last = thread.latest;
+    if (last && last.face) thread.face(last, (last.kind === "desk" ? "shepherd-" : "sheep-") + "neutral");
+    const c = saved.card;
+    if (c && typeof c.id === "string" && typeof c.text === "string") {
+      if (c.open === true) showCard({ type: "show", id: c.id, text: c.text });
+      else { shownId = c.id; shownText = c.text; }  // dismissed: the next poll must not bring it back
+    }
+    if (typeof saved.sheep === "string" && herdById.has(saved.sheep)) {
+      showSheep(saved.sheep);
+      if (saved.to === saved.sheep) { typeTarget = saved.to; typeTo(herdById.get(saved.to).name); }
+    }
+    if (typeof saved.draft === "string") typed.value = saved.draft.slice(0, 4000);
+  }
+  kept = true;
+  typed.addEventListener("input", keep);
+  addEventListener("pagehide", keep);
+}
+
+// The mirror button does what a tap on the Shepherd does (a hang-up needs no second press from the keyboard: it is a
+// deliberate activation). The no-mic view opens the real call (the phone app catches call?auto and opens its call screen).
+btn.addEventListener("click", () => (handoffParked ? openHandoff() : viewOnly ? location.assign("call?auto") : pc ? hangup() : call()));
+if (viewOnly) say("Checking for cards from your desk…");
+else if (plain) say("Tap me (the shepherd in the yard) and just talk.");
+relayout();
+if (demo) {  // ?demo: no network; a fixed herd, the sprite cycling its states and one dialogue line. ?demo=12 places 8 and a +4.
+  if (!query.has("boot")) boot.off();  // ?demo&boot keeps the loading screen up, to look at it
+  // ?pose=<state> pins one state; ?sheep=<id> opens that sheep's panel; ?list opens the +N list; ?card shows a card;
+  // ?speaker=<id> seats that sheep as the talker (its portrait speaks).
+  const pose = query.get("pose"), order = ["idle", "listening", "thinking", "talking", "surprise", "wince", "aside", "muted"];
+  const count = parseInt(query.get("demo"), 10);
+  const fixed = [["w1:p4", "Release", "Ready to ship; waiting for your yes.", "blocked"], ["w1:p1", "API tests", "Fixing the tests that fail now and then.", "working"],
+                 ["w1:p2", "Setup guide", "Writing the setup guide.", "working"], ["w1:p5", "Login bug", "Fixed the login bug.", "done"],
+                 ["w1:p3", "Parser", "Splitting the parser into parts.", "working"], ["w1:p6", "Staging", "Staging build shipped; nothing to do.", "idle"]];
+  let demoHerd = fixed.map(([id, plain, line, status]) => ({ id, name: plain.toLowerCase().replace(/ /g, "-"), plain, line, status, talk: true }));
+  if (count > 0 && count !== 6) demoHerd = Array.from({ length: count }, (_, i) => ({ id: "w2:p" + (i + 1), name: ["release", "api-tests", "docs", "bugfix", "refactor", "deploy", "frontend", "backend", "migrations", "lint", "perf", "infra"][i % 12],
+    title: "Tab " + (i + 1), status: i === 0 ? "blocked" : i === 1 ? "done" : "working", talk: true }));
+  herd(demoHerd);
+  // a sample exchange, so the thread has something to read back; ?game=<id> opens the games on that one
+  thread.add("you", "You", "How is the release tab doing?");
+  bubble.say("Release is ready to ship. It is waiting at the gate for your yes.", { paced: false });
+  bubble.say("The api tests tab is still working through the flaky ones; two left.", { paced: false });
+  thread.add("you", "You", "Okay, let me know when the tests are green.");
+  if (query.get("game")) { game.pick(query.get("game")); game.show(); }
+  let i = 0, level = 0;
+  function demoState(s) {
+    sprite.set({ busy: s === "thinking", listening: s === "listening", speaking: s === "talking", aside: s === "aside", muted: s === "muted", calling: false });
+    if (s === "surprise") sprite.surprise(); else if (s === "wince") sprite.wince();
+    if (s === "talking") bubble.say(talker ? "Baa. Nearly there, one check left to run." : "Howdy! I'm " + NAME + ". I keep an eye on your herd while we talk.", { paced: false, speaker: talker ? talker.name : "" });
+    say(s === "talking" ? "Demo: talking on the voice level." : "Demo: " + s + ".");
+  }
+  if (query.get("speaker")) { const s = herdById.get(query.get("speaker")); if (s) setSpeaker({ id: s.id, name: s.name }); }
+  if (!reducedMotion) (function voiceDemo() { level = (level + 1) % 4; sprite.level([1, 3, 2, 1][level]); setTimeout(voiceDemo, 140); })();
+  if (demoCall) { shellState("live"); if (query.has("card")) showCard({ type: "show", text: "A card from the desk lands here. Links open in a new tab.", id: "demo" }); }
+  if (query.get("sheep")) showSheep(query.get("sheep"));
+  if (query.has("list")) showList();
+  if (pose) { demoState(pose); if (pose === "talking") bubble.done(); }
+  else (function cycle() { demoState(order[i++ % order.length]); setTimeout(cycle, 2600); })();
+} else {
+  if (!plain) {
+    // the phone app's Sheprd launcher opens ?view in a viewer without mic permission; call?auto opens its mic-owning call screen.
+    if (viewOnly) location.assign("call?auto");
+    else call();
+  } else boot.off();  // ?plain waits for his tap: nothing to wait for
+  pollCard();
+}
+</script>
+</body>
+</html>

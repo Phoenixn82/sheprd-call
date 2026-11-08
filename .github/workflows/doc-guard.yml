@@ -1,0 +1,231 @@
+name: Doc Guard
+
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+    branches:
+      - "**"
+
+jobs:
+  doc-guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check docs
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DOC_GUARD_DENYLIST: ${{ vars.DOC_GUARD_DENYLIST }}
+        run: |
+          set -uo pipefail
+
+          failures=0
+          warnings=0
+          rows=()
+
+          add_row() {
+            local check="$1"
+            local status="$2"
+            local note="$3"
+            rows+=("| ${check} | ${status} | ${note} |")
+          }
+
+          hard_fail() {
+            local check="$1"
+            local note="$2"
+            failures=$((failures + 1))
+            echo "::error title=${check}::${note}"
+            add_row "$check" "❌ Fail" "$note"
+          }
+
+          soft_warn() {
+            local check="$1"
+            local note="$2"
+            warnings=$((warnings + 1))
+            echo "::warning title=${check}::${note}"
+            add_row "$check" "⚠️ Warn" "$note"
+          }
+
+          pass() {
+            local check="$1"
+            local note="$2"
+            add_row "$check" "✅ Pass" "$note"
+          }
+
+          escape_note() {
+            local value="$1"
+            value="${value//'|'/'\|'}"
+            value="${value//$'\n'/'; '}"
+            printf '%s' "$value"
+          }
+
+          has_readme=false
+          if [[ -f README.md ]]; then
+            has_readme=true
+            pass "README exists" "README.md found at repository root."
+          else
+            hard_fail "README exists" "README.md is missing at repository root."
+          fi
+
+          if [[ -f LICENSE || -f LICENSE.md || -f LICENSE.txt ]]; then
+            pass "License file exists" "Root license file found."
+          else
+            hard_fail "License file exists" "Expected LICENSE, LICENSE.md, or LICENSE.txt at repository root."
+          fi
+
+          scan_file="$(mktemp)"
+          denylist_file="$(mktemp)"
+          trap 'rm -f "$scan_file" "$denylist_file"' EXIT
+
+          git ls-files \
+            ':!doc-guard.yml' \
+            ':!.github/workflows/doc-guard.yml' \
+            ':!*.example' \
+            ':!*.sample' \
+            ':!*.[eE][xX][aA][mM][pP][lL][eE]' \
+            ':!*.[sS][aA][mM][pP][lL][eE]' > "$scan_file"
+
+          secret_hits=()
+          # No -q (it suppresses the output we need to capture); -H forces the filename.
+          # Record only file:line (cut -f1,2), never the matched content, so a real
+          # secret is never echoed into the public Actions log / step summary.
+          while IFS= read -r file; do
+            [[ -f "$file" ]] || continue
+
+            while IFS= read -r loc; do [[ -n "$loc" ]] && secret_hits+=("AWS access key id: ${loc}"); done \
+              < <(grep -IHEn 'AKIA[0-9A-Z]{16}' "$file" 2>/dev/null | cut -d: -f1,2)
+
+            while IFS= read -r loc; do [[ -n "$loc" ]] && secret_hits+=("Private key header: ${loc}"); done \
+              < <(grep -IHEn -- '-----BEGIN [A-Z ]*PRIVATE KEY-----' "$file" 2>/dev/null | cut -d: -f1,2)
+
+            while IFS= read -r loc; do [[ -n "$loc" ]] && secret_hits+=("GitHub token: ${loc}"); done \
+              < <(grep -IHEn 'gh[posru]_[A-Za-z0-9]{30,}' "$file" 2>/dev/null | cut -d: -f1,2)
+
+            while IFS= read -r loc; do [[ -n "$loc" ]] && secret_hits+=("OpenAI-style key: ${loc}"); done \
+              < <(grep -IHEn 'sk-[A-Za-z0-9]{20,}' "$file" 2>/dev/null | cut -d: -f1,2)
+
+            while IFS= read -r loc; do [[ -n "$loc" ]] && secret_hits+=("Secret-like assignment: ${loc}"); done \
+              < <(grep -IHEin "(password|api[_-]?key|secret|token)[[:space:]]*[:=][[:space:]]*['\"][^'\"]{6,}['\"]" "$file" 2>/dev/null | cut -d: -f1,2)
+          done < "$scan_file"
+
+          if (( ${#secret_hits[@]} > 0 )); then
+            note="$(escape_note "$(printf '%s\n' "${secret_hits[@]}" | head -n 10)")"
+            hard_fail "Secret scan" "Potential secret/PII patterns found: ${note}"
+          else
+            pass "Secret scan" "No configured secret patterns found in tracked files."
+          fi
+
+          if [[ -n "${DOC_GUARD_DENYLIST:-}" ]]; then
+            deny_hits=()
+            IFS=',' read -ra deny_items <<< "$DOC_GUARD_DENYLIST"
+
+            for literal in "${deny_items[@]}"; do
+              literal="${literal#"${literal%%[![:space:]]*}"}"
+              literal="${literal%"${literal##*[![:space:]]}"}"
+              [[ -n "$literal" ]] || continue
+
+              while IFS= read -r file; do
+                [[ -f "$file" ]] || continue
+                # location-only (file:line); never echo the literal back into public logs
+                while IFS= read -r loc; do [[ -n "$loc" ]] && deny_hits+=("${loc}"); done \
+                  < <(grep -IFHn -- "$literal" "$file" 2>/dev/null | cut -d: -f1,2)
+              done < "$scan_file"
+            done
+
+            if (( ${#deny_hits[@]} > 0 )); then
+              note="$(escape_note "$(printf '%s\n' "${deny_hits[@]}" | head -n 10)")"
+              hard_fail "PII denylist" "Denylist literal found: ${note}"
+            else
+              pass "PII denylist" "No denylist literals found."
+            fi
+          else
+            pass "PII denylist" "Skipped because DOC_GUARD_DENYLIST is empty."
+          fi
+
+          if [[ "$has_readme" == true ]]; then
+            h1_line="$(grep -nE '^# ' README.md | head -n 1 | cut -d: -f1 || true)"
+
+            if [[ -n "$h1_line" ]]; then
+              pass "README H1" "README contains an H1 heading."
+
+              description="$(tail -n +"$((h1_line + 1))" README.md | head -n 5 | grep -Ev '^[[:space:]]*$|^[[:space:]]*#' | head -n 1 || true)"
+              if [[ -n "$description" ]]; then
+                pass "README one-line description" "Found non-heading text near the H1."
+              else
+                soft_warn "README one-line description" "No non-empty, non-heading text line found within 5 lines after the H1."
+              fi
+            else
+              soft_warn "README H1" "README.md has no line starting with '# '."
+              soft_warn "README one-line description" "Skipped because README.md has no H1."
+            fi
+
+            if grep -Eiq '^[[:space:]]*#{1,6}[[:space:]]+getting started([[:space:]]|$)' README.md; then
+              pass "README setup heading" "Found a Getting started heading."
+            elif grep -Eiq '^[[:space:]]*#{1,6}[[:space:]]+install([[:space:]]|$)' README.md && grep -Eiq '^[[:space:]]*#{1,6}[[:space:]]+run([[:space:]]|$)' README.md; then
+              pass "README setup heading" "Found both Install and Run headings."
+            else
+              soft_warn "README setup heading" "Expected a Getting started heading, or both Install and Run headings."
+            fi
+
+            if grep -Eq '!\[[^]]*\]\([^)]+\)|<img([[:space:]>])' README.md || grep -Eq '^```' README.md; then
+              pass "README media or code" "Found an image or fenced code block."
+            else
+              soft_warn "README media or code" "Expected at least one image or fenced code block."
+            fi
+
+            if grep -Eiq '^[[:space:]]*#{1,6}[[:space:]]+license([[:space:]]|$)' README.md; then
+              pass "README License heading" "Found a License heading."
+            else
+              soft_warn "README License heading" "README.md has no License heading."
+            fi
+
+            found_slop="$(grep -Eio '\b(leverage|crafted|craft|innovative|cutting-edge|seamless|robust|powerful|passionate|revolutionary)\b' README.md | sort -fu | paste -sd ', ' - || true)"
+            if [[ -n "$found_slop" ]]; then
+              soft_warn "README slop words" "Found banned words: $(escape_note "$found_slop")."
+            else
+              pass "README slop words" "No banned slop words found."
+            fi
+          else
+            soft_warn "README H1" "Skipped because README.md is missing."
+            soft_warn "README one-line description" "Skipped because README.md is missing."
+            soft_warn "README setup heading" "Skipped because README.md is missing."
+            soft_warn "README media or code" "Skipped because README.md is missing."
+            soft_warn "README License heading" "Skipped because README.md is missing."
+            soft_warn "README slop words" "Skipped because README.md is missing."
+          fi
+
+          repo_description="$(gh api "repos/${{ github.repository }}" --jq '.description' 2>/dev/null || true)"
+          if [[ -n "${repo_description:-}" && "$repo_description" != "null" ]]; then
+            pass "Repo description" "Repository description is non-empty."
+          else
+            soft_warn "Repo description" "Repository description is empty."
+          fi
+
+          topic_count="$(gh api "repos/${{ github.repository }}/topics" --jq '.names | length' 2>/dev/null || true)"
+          [[ "$topic_count" =~ ^[0-9]+$ ]] || topic_count=0
+          if [[ "$topic_count" -ge 5 ]]; then
+            pass "Repo topics" "Repository has ${topic_count} topics."
+          else
+            soft_warn "Repo topics" "Repository has ${topic_count} topics; expected at least 5."
+          fi
+
+          {
+            echo "## Documentation Guard Summary"
+            echo
+            echo "| Check | Status | Note |"
+            echo "| --- | --- | --- |"
+            printf '%s\n' "${rows[@]}"
+            echo
+            echo "Final result: ${failures} hard failure(s), ${warnings} warning(s)."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          echo "Documentation guard completed: ${failures} hard failure(s), ${warnings} warning(s)."
+
+          if (( failures > 0 )); then
+            exit 1
+          fi

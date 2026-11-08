@@ -1,0 +1,23 @@
+# Sheprd's bridge (bridge.py): runs the desk in Herdr and relays each turn between it and the voice.
+# Install: cp deploy/shepherd-bridge.service ~/.config/systemd/user/ && systemctl --user enable --now shepherd-bridge
+# Runs on the machine with Herdr and Claude Code. Assumes the repo at ~/sheprd-call; settings come from
+# ~/.config/shepherd/shepherd.env (see shepherd.env.example). Standard library only: no venv needed.
+[Unit]
+Description=Sheprd bridge (the desk in Herdr)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+WorkingDirectory=%h/sheprd-call
+Environment=PYTHONUNBUFFERED=1
+# herdr and claude are usually installed per user
+Environment=PATH=%h/.local/bin:/usr/local/bin:/usr/bin:/bin
+EnvironmentFile=-%h/.config/shepherd/shepherd.env
+ExecStart=/usr/bin/python3 -I bridge.py
+# call audio, transcripts, uploads and desk state: readable by this user only
+UMask=0077
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=default.target

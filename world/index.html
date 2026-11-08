@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Sheprd world preview</title>
+<meta name="color-scheme" content="dark">
+<style>
+  html, body { margin: 0; height: 100%; background: #1e2c24; overflow: hidden; }
+  #game { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; touch-action: none; }
+  #game canvas { image-rendering: pixelated; image-rendering: crisp-edges; display: block; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+</style>
+</head>
+<body>
+<!-- Dev preview of the world alone (the call screen mounts the same files through /sheprd/). A fixed herd in its hats;
+     tap a sheep or the Shepherd and the live region names it (the words themselves live in the page's thread now).
+     ?shot=overworld freezes a frame. -->
+<div id="game" role="application" aria-label="Sheprd pasture preview"></div>
+<div id="live" class="sr" aria-live="polite" aria-atomic="true"></div>
+<script src="../vendor/phaser-4.2.1.min.js"></script>
+<script src="px.js"></script>
+<script src="font.js"></script>
+<script src="tiles.js"></script>
+<script src="sprites.js"></script>
+<script src="world.js"></script>
+<script>
+(function () {
+  const q = new URLSearchParams(location.search), shot = q.get('shot'), face = q.get('face') || 'neutral';
+  const sheep = (id, name, status) => ({ id, name, title: name, status, talk: true });
+  const herd = {
+    field: [sheep('w1:p1', 'api-tests', 'working'), sheep('w1:p2', 'docs', 'working'), sheep('w1:p3', 'refactor', 'working')],
+    gate: [sheep('w1:p4', 'release', 'blocked')], home: [sheep('w1:p5', 'bugfix', 'done')], rest: [sheep('w1:p6', 'staging', 'idle')], more: 0,
+  };
+  const live = document.getElementById('live');
+  const line = (name, text) => { live.textContent = name + ': ' + text; };
+  const world = SheprdWorld.mount(document.getElementById('game'), {
+    reducedMotion: !!shot || (matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches),
+    onSheep(id) { const s = [...herd.field, ...herd.gate, ...herd.home, ...herd.rest].find(x => x.id === id); line(s.name, s.status + ', wearing a ' + SHEPRD.hatFor(id)); },
+    onShepherd() { line('SHEPRD', 'Three tabs are working. One is waiting on you at the gate.'); },
+    onMore() {}, onGround() {},
+  });
+  world.setHerd(herd);
+  world.setSprite(q.get('sprite') || 'idle');
+  window.addEventListener('resize', () => world.resize());
+  window.SHEPRD_WORLD = world;
+})();
+</script>
+</body>
+</html>

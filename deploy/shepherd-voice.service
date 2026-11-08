@@ -1,0 +1,29 @@
+# Sheprd's voice (bot.py): speech in, speech out, and the call page at /call.
+# Install: cp deploy/shepherd-voice.service ~/.config/systemd/user/ && systemctl --user enable --now shepherd-voice
+# Assumes the repo at ~/sheprd-call with its venv in .venv; edit the paths if yours differ. Settings come from
+# ~/.config/shepherd/shepherd.env (see shepherd.env.example). To take calls from another machine, change --host to
+# this machine's tailnet address, or keep 127.0.0.1 and put `tailscale serve` in front.
+[Unit]
+Description=Sheprd voice (Pipecat bot and call page)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+WorkingDirectory=%h/sheprd-call
+Environment=PYTHONUNBUFFERED=1
+EnvironmentFile=-%h/.config/shepherd/shepherd.env
+ExecStart=%h/sheprd-call/.venv/bin/python bot.py -t webrtc --host 127.0.0.1 --port 7862
+Nice=5
+# 2026-11-07: Nice only ranks threads inside one cgroup, and every voice-host job is its own unit, so a niced-19 tuning
+# trial still took an equal CPU share and STT ran 15-16 s a turn. 10x the default weight wins the CPU while a call
+# needs it; idle, the tuning jobs keep every core.
+CPUWeight=1000
+# call audio, transcripts, uploads and desk state: readable by this user only
+UMask=0077
+Restart=always
+RestartSec=10
+# backstop only: bot.py stops in a few seconds (uvicorn cancels open requests after STOP_GRACE)
+TimeoutStopSec=15
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,92 @@
+#!/usr/bin/env python3
+"""Copy one image or audio clip to Sheprd's shown folder and print its display marker.
+
+The folder is VOICE_SHOWN_DIR (default VOICE_STATE/shown) on the voice host: VOICE_SHOW_SSH names that host for
+ssh, unset copies on this machine. Knobs missing from the environment come from ~/.config/shepherd/shepherd.env, so a
+bare call-show from any shell (the desk's Herdr pane never sees the bridge unit's environment) reaches the voice host."""
+
+import argparse
+import os
+from pathlib import Path
+import shlex
+import subprocess
+import sys
+import uuid
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from shown import KIND_OF, file_type
+
+
+KNOBS = ("VOICE_SHOW_SSH", "VOICE_SHOWN_DIR", "VOICE_STATE")
+
+
+def settings():
+    """The environment's knobs, else shepherd.env's (KEY=VALUE lines, optional quotes)."""
+    found = {}
+    try:
+        lines = (Path.home() / ".config/shepherd/shepherd.env").read_text().splitlines()
+    except OSError:
+        lines = []
+    for line in lines:
+        key, sep, value = line.strip().partition("=")
+        if sep and key in KNOBS:
+            found[key] = value.strip().strip("'\"")
+    return {k: os.environ[k] if k in os.environ else found.get(k, "") for k in KNOBS}
+
+
+def show_file(path):
+    # The user's filename never enters the remote command or the public marker.
+    with path.open("rb", buffering=0) as source:  # unbuffered: seek(0) must move the fd the child reads
+        kind = file_type(source.read(12))
+        if kind is None:
+            raise ValueError("Only PNG, JPEG and WebP images, and MP3, Ogg and WAV audio, can be shown")
+        source.seek(0)
+        name = uuid.uuid4().hex + "." + kind
+        script = '''
+from pathlib import Path
+import os
+import re
+import shutil
+import sys
+import time
+root = Path(sys.argv[2]).expanduser()
+root.mkdir(parents=True, exist_ok=True, mode=0o700)
+name = sys.argv[1]
+temporary = root / ("." + name + ".part")
+try:
+    with temporary.open("xb") as target:
+        os.chmod(temporary, 0o600)
+        shutil.copyfileobj(sys.stdin.buffer, target, 1024 * 1024)
+    temporary.replace(root / name)
+finally:
+    temporary.unlink(missing_ok=True)
+for path in root.iterdir():
+    if (re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_-]{0,127}\\.(png|jpe?g|webp|mp3|ogg|wav)", path.name, re.I)
+            and not path.is_symlink() and path.is_file() and time.time() - path.stat().st_mtime >= 86400):
+        path.unlink(missing_ok=True)
+'''
+        # unexpanded: ~ means the voice host's home, expanded there
+        knobs = settings()
+        root = knobs["VOICE_SHOWN_DIR"] or (knobs["VOICE_STATE"] or "~/.local/state/shepherd") + "/shown"
+        command = ["python3", "-c", script, name, root]
+        host = knobs["VOICE_SHOW_SSH"]
+        if host:
+            command = ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=15", host, shlex.join(command)]
+        subprocess.run(command, stdin=source, stdout=subprocess.DEVNULL, check=True, timeout=120)
+    return f"[show]{KIND_OF[kind]}:{name}[/show]"
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("file", type=Path)
+    args = parser.parse_args()
+    try:
+        print(show_file(args.file))
+    except (OSError, ValueError, subprocess.SubprocessError) as error:
+        print(f"call-show: {error}", file=sys.stderr)
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
